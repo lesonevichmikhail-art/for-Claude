@@ -447,7 +447,7 @@ class Cancel extends Error{}
 function chk(ep){ if(ep!==RT.epoch) throw new Cancel(); }
 function ptimer(ms, cb){
   let left=ms, last=performance.now(), dead=false;
-  const t=setInterval(()=>{ const now=performance.now(); if(!RT.paused) left-=now-last; last=now; if(left<=0){ clearInterval(t); if(!dead) cb(); } },40);
+  const t=setInterval(()=>{ const now=performance.now(); if(!RT.paused && !RT.rest) left-=now-last; last=now; if(left<=0){ clearInterval(t); if(!dead) cb(); } },40);
   return ()=>{ dead=true; clearInterval(t); };
 }
 function sleep(ms){ const ep=RT.epoch; return new Promise((res,rej)=>{ ptimer(ms,()=> ep===RT.epoch ? res() : rej(new Cancel())); S.cancels.push(()=>rej(new Cancel())); }); }
@@ -545,14 +545,15 @@ const reduce=()=>window.matchMedia && matchMedia('(prefers-reduced-motion:reduce
 /* движение рук — через requestAnimationFrame (reduce-motion его не гасит, только смягчаем) */
 function animHand(el, kind){
   return new Promise(res=>{
-    const dur=kind==='up'?900:700, amp=reduce()?0.5:1, t0=performance.now();
+    const dur=kind==='up'?900:700, amp=reduce()?0.5:1; let t0=performance.now();
     function f(now){
       const x=Math.min(1,(now-t0)/dur);
       let y=0, r=0;
       if(kind==='up'){ const k=Math.sin(Math.PI*x); y=-22*k*amp; r=-6*k*amp; }
       else { const k=Math.abs(Math.sin(Math.PI*2*x)); y=14*k*amp; }         // два удара мячом
       el.style.transform='translateY('+y.toFixed(1)+'%) rotate('+r.toFixed(1)+'deg)';
-      if(x<1 && !RT.paused) requestAnimationFrame(f); else { el.style.transform=''; res(); }
+      if(RT.paused){ t0+=16; requestAnimationFrame(f); return; }
+      if(x<1) requestAnimationFrame(f); else { el.style.transform=''; res(); }
     }
     requestAnimationFrame(f);
   });
@@ -560,7 +561,7 @@ function animHand(el, kind){
 
 /* ================= ПЕРЕХОДЫ ================= */
 function go(name){
-  $('#rest').classList.remove('on'); restBusy=false;
+  $('#rest').classList.remove('on'); restBusy=false; RT.rest=false;
   RT.epoch++;
   S.cancels.forEach(f=>{ try{f();}catch(e){} }); S.cancels=[];
   V.stop(); S.waiting=false; S.pending=null; S.lock=true;
@@ -625,9 +626,9 @@ function openRest(){
   $('#rNose').innerHTML=pic('ikonka_nos','нос'); $('#rMouth').innerHTML=pic('ikonka_rot','рот');
   $('#rBack').innerHTML=pic('ikonka_strelka','играть дальше');
   $('#rNose').style.opacity=1; $('#rMouth').style.opacity=0; $('#rCircle').style.transform='scale(.85)';
-  $('#rest').classList.add('on'); V.say('ob_otdohnem');
+  $('#rest').classList.add('on'); RT.rest=true; V.say('ob_otdohnem');
 }
-function closeRest(){ $('#rest').classList.remove('on'); restBusy=false; S.idleMs=0; S.idleStage=0; }
+function closeRest(){ $('#rest').classList.remove('on'); RT.rest=false; restBusy=false; S.idleMs=0; S.idleStage=0; }
 $('#rCircle').addEventListener('pointerdown',async e=>{
   e.preventDefault(); if(restBusy) return; restBusy=true; V.stop();
   try{ await breathe(RT.epoch, 2, $('#rCircle'), $('#rNose'), $('#rMouth')); A.release(); }catch(_){}
@@ -683,9 +684,9 @@ function noteMiss(){
     else if(S.set.mode!=='easy') shift(-1);
   }
 }
-function noteOk(){ S.missRun=0; }
-function shift(d){ if(S.shifted) return false; const nl=clamp(S.level+d,layerRange()); if(nl===S.level) return false;
-  S.level=nl; S.shifted=true; S.set.level=nl; saveSet(); S.log.levels.push((d>0?'↑':'↓')+nl); return true; }
+function noteOk(){ S.missRun=0; if(S.ch) S.ch.miss=0; }
+function shift(d){ const fl=d>0?'shiftedUp':'shiftedDown'; if(S[fl]) return false; const nl=clamp(S.level+d,layerRange()); if(nl===S.level) return false;
+  S.level=nl; S[fl]=true; S.set.level=nl; saveSet(); S.log.levels.push((d>0?'↑':'↓')+nl); return true; }
 /* после задания: вернуть true, если пора предложить тропу */
 function afterTask(clean){
   const L=S.log; L.tasks++; if(clean) L.clean++;
@@ -693,7 +694,7 @@ function afterTask(clean){
   if(S.ch && S.ch.on){
     S.ch.left--;
     if(S.ch.left<=0){ S.ch.on=false; S.log.burstOk++; S.log.levels.push('тропа ✓'); const r=layerRange();
-      S.level=Math.min(4,Math.max(S.level+1,r[0])); S.set.level=S.level; saveSet(); }
+      S.level=clamp(S.level+1,r); S.shiftedUp=true; S.set.level=S.level; saveSet(); }
     return false;
   }
   if(!clean){ S.okRun=0; return false; }
@@ -707,7 +708,7 @@ function afterTask(clean){
 function canOffer(){
   const C=CONFIG.challenge, ch=S.ch;
   return S.set.tropa==='both' && ch && ch.offers<C.maxOffersPerSession && ch.failed<C.stopAfterFailedBursts &&
-    S.totalTasks-S.taskN>C.noOfferInLast && S.level+C.stepUp<=4;
+    S.totalTasks-S.taskN>C.noOfferInLast && S.level+C.stepUp<=layerRange()[1];
 }
 
 /* ================= ВЫБОР ЗАДАНИЯ ================= */
@@ -773,7 +774,7 @@ FLOW.intro = async ep=>{
 function startGame(){
   A.ensure(); A.tap();
   S.support=false; S.missRun=0; S.okRun=0; S.log=newLog(); S.prevMiss=false;
-  S.usedScenes=[]; S.lastScene=-1; S.done=[]; S.taskN=0;
+  S.lastLv=null; S.usedScenes=[]; S.lastScene=-1; S.done=[]; S.taskN=0;
   S.totalTasks=(+S.set.rounds||3)*CONFIG.tasksPerRound;
   S.ch={on:false, left:0, miss:0, offers:0, failed:0, chosen:null};
   const r=layerRange(), m=S.set.mode;
@@ -838,12 +839,12 @@ FLOW.play = async ep=>{
   const r0=Math.floor(S.taskN/N);
   for(let round=r0; round<R; round++){
     chk(ep);
-    S.shifted=false;
+    S.shiftedUp=false; S.shiftedDown=false;
     for(let k=S.taskN%N; k<N; k++){
       const lastTask = round===R-1 && k===N-1;
-      const easyEnd = lastTask && S.prevMiss;                     // финал всегда на удаче
+      const easyEnd = lastTask;                     // финал всегда на удаче
       const burst = S.ch.on;
-      const lv = easyEnd ? layerRange()[0] : burst ? Math.min(4,S.level+CONFIG.challenge.stepUp) : S.level;
+      const lv = easyEnd ? Math.max(layerRange()[0],S.level-(S.prevMiss?1:0)) : burst ? Math.min(layerRange()[1],S.level+CONFIG.challenge.stepUp) : S.level;
       if(S.log.levels[S.log.levels.length-1]!=='L'+lv) S.log.levels.push('L'+lv);
       const offer = await runTask(ep, pickScene(), lv, k, easyEnd, burst);
       S.taskN++;
@@ -887,6 +888,7 @@ async function runTask(ep, sc, lv, k, easyEnd, burst){
     if(ev.card===undefined) continue;
     const c=cards[ev.card], t=need[stage];
     if(!c || el(ev.card).classList.contains('gone')) continue;
+    if(stage>0 && c.t==='k') continue;                          // герой уже выбран
     if(c.t!==t){                                                  // действие раньше героя — порядок, не ошибка
       S.lock=true; S.log.order++; pulse('#slotK'); await instr(ep,'kc_snachala_kto'); S.lock=false; continue;
     }
@@ -1029,7 +1031,7 @@ function sheetHTML(){
   '<p>Уровни: '+[1,2,3,4].map(n=>n+' — '+CONTENT.levels[n].name).join('; ')+'.</p>'+
   '<p>Между кругами — «руки»: Дядя Миша говорит фразу и показывает, ребёнок повторяет руками. Нет действий 15 с — «Не спеши. Я рядом». 45 с — окно отдыха (нос — 2 вдоха-выдоха, стрелка — играть дальше).</p>'+
   '<h2>Если трудно</h2><p>Режим «Легко» — нижний уровень и опора всегда. Для непоседы: «Подъём уровня — держать»: уровень не растёт сам, задача — дольше спокойно держать правило. Ребёнок устал — стрелка «Домой» в паузе.</p>'+
-  '<h2>Сколько играть</h2><p>5–7 минут (3 круга по 5 картинок), раз в день. Для 4–5 лет — 2 круга.</p>'+
+  '<h2>Сколько играть</h2><p>5–7 минут (3 круга по 5 картинок), раз в день. Для 4–5 лет поставьте 2 круга в настройках ниже.</p>'+
   '<p>Игра не заменяет занятий со специалистом. Результат на детях не замерен.</p>'+
   '<h2>Для специалиста</h2><p>«Промахов кто» много — не выделяет субъект; «что делает» — бедный глагольный словарь; «начал с действия» — трудность порядка (программирование). Трудные герои и действия — ниже.</p>'+log+
   '<h2>Настройки</h2>'+
