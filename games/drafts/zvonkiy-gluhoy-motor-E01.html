@@ -226,6 +226,11 @@ body.paused *{animation-play-state:paused!important}
   #scr-bridge .ibtn{width:64px;height:64px;padding:11px} .adultCard{line-height:1.22;padding:8px 12px}
   .choice .cap{font-size:15px} .badges{min-height:34px} .badges .bd{width:34px;height:34px} }
 #brCard.shut p{display:none}
+#rest{position:absolute;inset:0;z-index:35;background:rgba(255,248,238,.94);display:none;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+#rest.on{display:flex}
+.rCircle{position:relative;width:min(56vmin,300px);height:min(56vmin,300px);border-radius:50%;border:4px solid var(--line);background:#fff;cursor:pointer;padding:0}
+.rCircle .bi{position:absolute;inset:18%;display:flex;align-items:center;justify-content:center}.rCircle img{max-width:100%;max-height:100%}
+#rBack{width:80px;height:80px;padding:14px}
 #brOpen{min-height:64px;min-width:64px;font:inherit;font-weight:700;background:none;border:0;color:inherit;cursor:pointer;padding:8px 4px}
 </style>
 </head>
@@ -304,6 +309,12 @@ body.paused *{animation-play-state:paused!important}
     <div class="brTrail" id="brTrail"></div>
     <div class="adultCard" id="brCard"></div>
   </section>
+
+  <!-- I блок: отдых по желанию — после 45 с без действий -->
+  <div id="rest" role="dialog" aria-label="Отдохнём">
+    <button class="rCircle" id="rCircle" aria-label="Подышать"><div class="bi" id="rNose"></div><div class="bi" id="rMouth" style="opacity:0"></div></button>
+    <button class="ibtn" id="rBack" aria-label="Играть дальше"></button>
+  </div>
 
   <div id="pause" role="dialog" aria-label="Пауза">
     <button class="ibtn" id="pHome" aria-label="Домой"></button>
@@ -623,7 +634,7 @@ function bg(el, key){
 const pilotImg=()=>ASSETS.geroy_pilot_kvadrocikl?'geroy_pilot_kvadrocikl':'predmet_kvadrocikl';
 
 /* ================= ПЕРЕХОДЫ ================= */
-function go(name){
+function go(name){ $("#rest").classList.remove("on"); restBusy=false;
   RT.epoch++;
   S.cancels.forEach(f=>{ try{f();}catch(e){} }); S.cancels=[];
   V.stop(); S.waiting=false; S.pending=null; S.lock=true;
@@ -673,8 +684,24 @@ setInterval(()=>{
   if(!S.waiting || RT.paused || V.busy || S.drag || S.screen==='gear') return;
   S.idleMs+=250;
   if(S.idleStage===0 && S.idleMs>=CONFIG.idle1){ S.idleStage=1; S.log&&S.log.idle++; V.say('ob_ne_speshi'); }
-  else if(S.idleStage===1 && S.idleMs>=CONFIG.idle2){ S.idleStage=2; V.say('ob_otdohnem'); }
+  else if(S.idleStage===1 && S.idleMs>=CONFIG.idle2){ S.idleStage=2; openRest(); }
 },250);
+
+/* ---- отдых: нос в круге — нажал, подышали 2 раза; стрелка — играть дальше ---- */
+let restBusy=false;
+function openRest(){
+  $('#rNose').innerHTML=pic('ikonka_nos','нос'); $('#rMouth').innerHTML=pic('ikonka_rot','рот');
+  $('#rBack').innerHTML=pic('ikonka_strelka','играть дальше');
+  $('#rNose').style.opacity=1; $('#rMouth').style.opacity=0; $('#rCircle').style.transform='scale(.85)';
+  $('#rest').classList.add('on'); V.say('ob_otdohnem');
+}
+function closeRest(){ $('#rest').classList.remove('on'); restBusy=false; S.idleMs=0; S.idleStage=0; }
+$('#rCircle').addEventListener('pointerdown',async e=>{
+  e.preventDefault(); if(restBusy) return; restBusy=true; V.stop();
+  try{ await breathe(RT.epoch, 2, $('#rCircle'), $('#rNose'), $('#rMouth')); A.release(); }catch(_){}
+  closeRest();
+});
+$('#rBack').addEventListener('pointerdown',e=>{ e.preventDefault(); if(restBusy) return; V.stop(); closeRest(); });
 
 /* ================= ДЫХАНИЕ ================= */
 function breathe(ep, cycles, circle, nose, mouth, extra){
