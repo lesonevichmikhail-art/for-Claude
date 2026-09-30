@@ -4,7 +4,7 @@
 Имена = ключи в ASSETS / VOICE. Новая игра берёт отсюда, в список Михаилу — только недостающее.
 
 ## PNG (30)
-- **Герои:** geroy_most_nesi_telefon, geroy_pilot_bez_shlema, geroy_pilot_kvadrocikl, geroy_pilot_zastryal, geroy_yozhik
+- **Герои:** geroy_kot, geroy_sobaka, geroy_most_nesi_telefon, geroy_pilot_bez_shlema, geroy_pilot_kvadrocikl, geroy_pilot_zastryal, geroy_yozhik
 - **Предметы:** predmet_kvadrocikl, predmet_ladoni, predmet_motor_drozhit, predmet_motor_tihiy, predmet_perchatki, predmet_shlem
 - **Фоны:** fon_chuzhoe_pole, fon_derevnya, fon_garazh, fon_lesnaya_trassa
 - **Иконки:** ikonka_chestnyy_pilot, ikonka_domoy, ikonka_eshche_raz, ikonka_galochka, ikonka_igrat, ikonka_ladon_gorlo, ikonka_nos, ikonka_obehat, ikonka_pauza, ikonka_proverit, ikonka_rot, ikonka_skazal, ikonka_stop, ikonka_strelka, ikonka_uho
