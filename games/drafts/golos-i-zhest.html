@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Голос и жест · Дядя Миша</title>
+<style>
+:root{
+  --bg:#fbf3e4; --card:#fff8ec; --ink:#4a3320; --muted:#9b7b55;
+  --ochre:#e0a045; --ochre2:#b97a2a; --olive:#8a9a4b; --olive2:#6c7a36;
+  --terra:#c8704a; --line:#e6d4b4; --glow:#f3cf6a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation}
+button{font:inherit;color:inherit;border:none;cursor:pointer;background:none}
+
+/* верхняя полоса */
+#topbar{position:fixed;top:0;left:0;right:0;height:max(64px,9vh);display:flex;align-items:center;
+  justify-content:space-between;padding:0 max(8px,2vw);z-index:20;pointer-events:none}
+#topbar>*{pointer-events:auto}
+#sign{font-size:max(14px,1.6vh);color:var(--muted);align-self:flex-start;margin-top:6px}
+.topbtns{display:flex;gap:10px}
+.round{width:64px;height:64px;border-radius:50%;background:var(--card);box-shadow:0 3px 0 var(--line);
+  font-size:26px;font-weight:700;display:flex;align-items:center;justify-content:center}
+#soundBtn.off{opacity:.45}
+
+/* экраны */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:max(70px,10vh) max(16px,3vw) max(16px,3vh);gap:max(10px,2vh)}
+.screen.active{display:flex}
+.phrase{font-size:max(22px,min(4.2vh,6vw));font-weight:700;text-align:center;min-height:1.3em}
+
+/* заглушка PNG */
+.ph{background:#cfcfcf;border-radius:18px;display:flex;align-items:center;justify-content:center;
+  color:#555;font-size:max(13px,1.5vh);text-align:center;padding:6px;word-break:break-all;overflow:hidden}
+.ph img,.pic img{width:100%;height:100%;object-fit:contain}
+.pic{display:flex;align-items:center;justify-content:center}
+
+.big{width:min(46vh,70vw);height:min(46vh,70vw)}
+.btn{min-width:max(140px,22vw);min-height:72px;border-radius:24px;background:var(--olive);color:#fff;
+  font-size:max(22px,3vh);font-weight:700;box-shadow:0 6px 0 var(--olive2);padding:10px 26px;
+  display:flex;align-items:center;justify-content:center;gap:12px}
+.btn:active{transform:translateY(3px);box-shadow:0 3px 0 var(--olive2)}
+.btn .ph{width:52px;height:52px;border-radius:12px;font-size:10px}
+.btn.alt{background:var(--ochre);box-shadow:0 6px 0 var(--ochre2)}
+
+/* дыхание */
+#breathWrap{position:relative;width:min(56vh,80vw);height:min(56vh,80vw);display:flex;align-items:center;justify-content:center}
+#breathCircle{position:absolute;width:100%;height:100%;border-radius:50%;background:radial-gradient(circle,#f6dfae 0%,#efc987 70%,#e8b86c 100%);opacity:.8}
+#breathHero{width:55%;height:55%;position:relative}
+
+/* игра */
+#stage{display:flex;flex-direction:column;align-items:center;gap:max(8px,1.5vh);width:100%}
+#mikiBox{width:min(34vh,56vw);height:min(34vh,56vw)}
+#seqRow,#cardRow{display:flex;gap:max(8px,1.5vw);justify-content:center;flex-wrap:wrap}
+.slot{width:min(11vh,17vw);height:min(11vh,17vw);border-radius:16px;border:3px dashed var(--line);background:var(--card)}
+.slot.filled{border-style:solid;border-color:var(--olive)}
+.card{width:min(14vh,22vw);height:min(14vh,22vw);min-width:64px;min-height:64px;border-radius:18px;background:var(--card);
+  box-shadow:0 5px 0 var(--line);padding:4px}
+.card.used{visibility:hidden}
+.card.glow{box-shadow:0 0 0 6px var(--glow),0 5px 0 var(--line)}
+#playBtns{display:flex;gap:14px;align-items:center;justify-content:center;min-height:80px}
+.iconbtn{width:80px;height:80px;border-radius:22px;background:var(--card);box-shadow:0 5px 0 var(--line);padding:6px}
+.iconbtn .ph{width:100%;height:100%;font-size:10px;border-radius:14px}
+.hidden{display:none!important}
+
+/* приглашение тропы */
+#offer .row{display:flex;gap:max(16px,4vw)}
+.pathbtn{width:min(30vh,40vw);height:min(30vh,40vw);border-radius:24px;background:var(--card);box-shadow:0 6px 0 var(--line);padding:8px}
+
+/* финал */
+#badge{width:min(16vh,26vw);height:min(16vh,26vw)}
+
+/* окно взрослого и пауза */
+.overlay{position:fixed;inset:0;background:rgba(60,40,20,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.overlay.open{display:flex}
+.sheet{background:var(--card);border-radius:22px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;padding:20px 22px;
+  font-size:17px;line-height:1.5}
+.sheet h3{font-size:19px;margin:12px 0 4px;color:var(--ochre2)}
+.sheet ul{padding-left:20px}
+.sheet .set{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.sheet .opt{min-height:48px;padding:6px 14px;border-radius:14px;background:#efe2c8;font-size:16px}
+.sheet .opt.on{background:var(--olive);color:#fff}
+.sheet .stat{color:var(--muted);font-size:16px}
+.sheet .foot{margin-top:16px;color:var(--muted);font-size:15px;text-align:right}
+.sheet .btn{margin:14px auto 0}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="sign">Дядя Миша</div>
+  <div class="topbtns">
+    <button class="round" id="pauseBtn" aria-label="Пауза">II</button>
+    <button class="round" id="soundBtn" aria-label="Звук">♪</button>
+    <button class="round" id="adultBtn" aria-label="Для взрослого">i</button>
+  </div>
+</div>
+
+<!-- Звено A (I блок): заставка, вход -->
+<section class="screen active" id="s-intro" data-luria="A">
+  <div class="big pic" data-img="miki_hello.png"></div>
+  <div class="phrase">Голос и жест</div>
+  <button class="btn" id="startBtn"><span class="ph pic" data-img="icon_play.png"></span>Играть</button>
+</section>
+
+<!-- Звено A (I блок): дыхание, 3 цикла -->
+<section class="screen" id="s-breath" data-luria="A">
+  <div id="breathWrap"><div id="breathCircle"></div><div id="breathHero" class="pic" data-img="miki_breath.png"></div></div>
+  <div class="phrase" id="breathPhrase">Дышим с Мики</div>
+</section>
+
+<!-- Звено B (II блок): восприятие — Мики показывает все жесты со звуком -->
+<section class="screen" id="s-learn" data-luria="B">
+  <div class="big pic" id="learnPic"></div>
+  <div class="phrase" id="learnWord"></div>
+  <button class="btn alt hidden" id="learnGo"><span class="ph pic" data-img="icon_play.png"></span>Дальше</button>
+</section>
+
+<!-- Звенья B+F+H (II–III блок): смотрю+слушаю → делаю телом → выкладываю по порядку -->
+<section class="screen" id="s-play" data-luria="B+F+H">
+  <div id="stage">
+    <div class="phrase" id="playPhrase"></div>
+    <div id="mikiBox" class="pic"></div>
+    <div id="seqRow"></div>
+    <div id="cardRow"></div>
+    <div id="playBtns">
+      <button class="iconbtn hidden" id="replayBtn" aria-label="Показать ещё"><span class="ph pic" data-img="icon_eye.png"></span></button>
+      <button class="btn hidden" id="doneBtn"><span class="ph pic" data-img="icon_done.png"></span>Сделал</button>
+    </div>
+  </div>
+</section>
+
+<!-- Тропа вызова: выбор ребёнка картинкой -->
+<section class="screen" id="offer" data-luria="H">
+  <div class="phrase">Какая тропа?</div>
+  <div class="row">
+    <button class="pathbtn pic" id="pathSame" data-img="path_same.png"></button>
+    <button class="pathbtn pic" id="pathMountain" data-img="path_mountain.png"></button>
+  </div>
+</section>
+
+<!-- Звено A: спокойный финал, дыхание 1 цикл, мостик -->
+<section class="screen" id="s-finish" data-luria="A">
+  <div class="big pic" id="finishPic" data-img="miki_bye.png"></div>
+  <div id="badge" class="pic hidden"></div>
+  <div class="phrase" id="finishPhrase">Покажи маме жесты Мики</div>
+  <button class="btn alt hidden" id="againBtn"><span class="ph pic" data-img="icon_again.png"></span>Ещё</button>
+</section>
+
+<!-- Пауза -->
+<div class="overlay" id="pauseOv">
+  <div class="sheet" style="text-align:center">
+    <div class="pic" data-img="miki_rest.png" style="width:40vw;max-width:220px;height:40vw;max-height:220px;margin:0 auto"></div>
+    <button class="btn" id="resumeBtn">Дальше</button>
+    <button class="btn alt" id="restartBtn">Сначала</button>
+  </div>
+</div>
+
+<!-- Окно взрослого -->
+<div class="overlay" id="adultOv">
+  <div class="sheet" id="adultSheet">
+    <h3>Правило</h3>
+    <p>Мики показывает жест и звучит нота. Ребёнок повторяет телом, потом выкладывает карточки в том же порядке.</p>
+    <h3>Что тренирует</h3>
+    <p>Звенья B + F + H: связку «вижу + слышу → делаю», удержание короткой цепочки, порядок действий. Эффект не замерен.</p>
+    <h3>Как помочь</h3>
+    <ul>
+      <li>Встаньте рядом и повторяйте жесты вместе с ребёнком.</li>
+      <li>Называйте жест вслух одним словом, когда Мики его показывает.</li>
+      <li>Если ребёнок сбился, нажмите «глаз» — Мики покажет ещё раз.</li>
+    </ul>
+    <h3>Если трудно</h3>
+    <p>Игра сама замедлит показ и подсветит нужную карточку. Можно показывать жест самому — пусть копирует вас.</p>
+    <h3>Сколько играть</h3>
+    <p>5 минут, 1–2 раза в день. Заканчивайте на радости. Игра не заменяет занятия со специалистом.</p>
+    <h3>Тропа вызова</h3>
+    <p>Спросите, почему выбрал горную тропу (или почему остался на той же). Любой выбор хороший.</p>
+    <p class="stat" id="stats"></p>
+
+    <h3>Настройки</h3>
+    <div>Трудность:</div>
+    <div class="set" id="modeSet">
+      <button class="opt" data-mode="both">и так, и так</button>
+      <button class="opt" data-mode="auto">игра сама</button>
+      <button class="opt" data-mode="child">ребёнок выбирает</button>
+    </div>
+    <div>Подъём уровня:</div>
+    <div class="set" id="liftSet">
+      <button class="opt" data-lift="on">включён</button>
+      <button class="opt" data-lift="off">выключен (для гиперактивных)</button>
+    </div>
+    <div class="set">
+      <button class="opt" id="sheetSound">Звук</button>
+      <button class="opt" id="sheetRestart">Начать сначала</button>
+    </div>
+    <button class="btn" id="adultClose">Закрыть</button>
+    <div class="foot">Дядя Миша</div>
+  </div>
+</div>
+
+<script>
+/* ═════════════ CONFIG: контент и числа (менять здесь, механику не трогать) ═════════════ */
+const CONFIG = {
+  // Вшитые PNG base64: 'имя.png': 'data:image/png;base64,...'. Пусто → серая заглушка с именем.
+  images: {},
+  gestures: [
+    { id:'armsUp', word:'Руки вверх', img:'miki_armsUp.png', freq:392.00 },
+    { id:'squat',  word:'Присесть',   img:'miki_squat.png',  freq:293.66 },
+    { id:'clap',   word:'Хлопок',     img:'miki_clap.png',   freq:523.25 },
+    { id:'lean',   word:'Наклон',     img:'miki_lean.png',   freq:329.63 },
+    { id:'jump',   word:'Прыжок',     img:'miki_jump.png',   freq:440.00 },
+    { id:'spin',   word:'Кружок',     img:'miki_spin.png',   freq:587.33 }
+  ],
+  idleImg: 'miki_idle.png',
+  happyImg: 'miki_happy.png',
+  phrases: { watch:'Смотри и слушай', move:'Повтори телом', order:'Что показал Мики?', good:'Да!' },
+  breath: { inhale:4000, exhale:5000, cyclesStart:3, cyclesEnd:1 },
+  rounds: 8,                 // раундов в занятии (без захода по горной тропе)
+  levels: { start:1, max:3 },// уровень = длина цепочки жестов
+  showMs: 1300, gapMs: 450, supportSlow: 1.6,
+  extraCards: 2,             // лишних карточек к цепочке
+  scaffold: { errorsForSupport:2, correctForLift:3, liftEnabled:true },
+  challenge: { enabled:true, offerAfterCorrect:3, stepUp:1, burstLength:[4,8], burst:4,
+               maxOffersPerSession:2, stopAfterFailedBursts:2, fallbackMisses:2, noOfferInLast:2 },
+  mode: 'both'               // both | auto | child
+};
+
+/* ═════════════ картинки ═════════════ */
+function fillPic(el, name){
+  el.dataset.img = name; el.innerHTML = '';
+  const src = CONFIG.images[name];
+  if (src){ const i = new Image(); i.src = src; i.alt = ''; el.classList.remove('ph'); el.appendChild(i); }
+  else { el.classList.add('ph'); el.textContent = '[' + name + ']'; }
+}
+function fillAll(root){ root.querySelectorAll('[data-img]').forEach(e => fillPic(e, e.dataset.img)); }
+
+/* ═════════════ звук: только WebAudio, по actx.currentTime ═════════════ */
+let actx = null, master = null, soundOn = true;
+function audio(){
+  if (!actx){
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    master = actx.createGain(); master.gain.value = soundOn ? 0.5 : 0; master.connect(actx.destination);
+  }
+  if (actx.state === 'suspended') actx.resume();
+}
+function tone(freq, dur = 0.35, delay = 0, vol = 0.3, type = 'sine'){
+  if (!actx || !soundOn) return;
+  const t = actx.currentTime + delay, o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.03);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+}
+const snd = {
+  click(){ tone(660, 0.08, 0, 0.12, 'triangle'); },
+  place(){ tone(784, 0.18, 0, 0.18); },
+  soft(){ tone(262, 0.25, 0, 0.1, 'triangle'); },        // промах: тихо, не грустно
+  yes(){ tone(523.25, 0.25); tone(659.25, 0.25, 0.12); tone(783.99, 0.4, 0.24); },
+  inhale(){ tone(330, 1.2, 0, 0.08); }, exhale(){ tone(262, 1.4, 0, 0.07); },
+  finish(){ [523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,0.5,i*0.18,0.2)); }
+};
+function setSound(on){
+  soundOn = on; if (master) master.gain.value = on ? 0.5 : 0;
+  document.getElementById('soundBtn').classList.toggle('off', !on);
+  document.getElementById('sheetSound').classList.toggle('on', on);
+}
+
+/* ═════════════ время с паузой ═════════════ */
+let paused = false, runId = 0;
+function wait(ms){
+  const my = runId;
+  return new Promise((res, rej) => {
+    let left = ms, last = performance.now();
+    (function tick(now){
+      if (my !== runId) return rej('stop');
+      if (!paused) left -= now - last;
+      last = now;
+      left <= 0 ? res() : requestAnimationFrame(tick);
+    })(last);
+  });
+}
+function waitTap(el){
+  const my = runId;
+  return new Promise((res, rej) => {
+    const h = () => { el.removeEventListener('pointerdown', h); my === runId ? res() : rej('stop'); };
+    el.addEventListener('pointerdown', h);
+  });
+}
+
+/* ═════════════ экраны ═════════════ */
+const $ = id => document.getElementById(id);
+function show(id){ document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id)); }
+
+/* ═════════════ дыхание: одна функция двигает круг и героя (rAF, не CSS) ═════════════ */
+function setBreath(k){ // k: 0..1
+  const s = 0.7 + 0.3 * k;
+  $('breathCircle').style.transform = 'scale(' + s + ')';
+  $('breathHero').style.transform = 'scale(' + (0.9 + 0.12 * k) + ')';
+}
+function animateBreath(from, to, ms){
+  const my = runId;
+  return new Promise((res, rej) => {
+    let t = 0, last = performance.now();
+    (function tick(now){
+      if (my !== runId) return rej('stop');
+      if (!paused) t += now - last; last = now;
+      const p = Math.min(1, t / ms), e = 0.5 - Math.cos(Math.PI * p) / 2;
+      setBreath(from + (to - from) * e);
+      p < 1 ? requestAnimationFrame(tick) : res();
+    })(last);
+  });
+}
+async function breathe(cycles, phraseIn = 'Вдох', phraseOut = 'Выдох'){
+  show('s-breath'); setBreath(0);
+  for (let i = 0; i < cycles; i++){
+    $('breathPhrase').textContent = phraseIn; snd.inhale();
+    await animateBreath(0, 1, CONFIG.breath.inhale);
+    $('breathPhrase').textContent = phraseOut; snd.exhale();
+    await animateBreath(1, 0, CONFIG.breath.exhale);
+  }
+}
+
+/* ═════════════ состояние занятия ═════════════ */
+let S;
+function freshState(){
+  return { level: CONFIG.levels.start, support:false, errRow:0, okRow:0,
+           roundsDone:0, offers:0, failedBursts:0, burst:null, path:null,
+           stats:{ rounds:0, clean:0, misses:0, replays:0, maxLevel:CONFIG.levels.start } };
+}
+function lastRounds(){ return CONFIG.rounds - S.roundsDone <= CONFIG.challenge.noOfferInLast; }
+
+/* ═════════════ маршрут: intro → breath → learn → play → finish ═════════════ */
+async function run(){
+  const my = ++runId; paused = false; S = freshState();
+  try {
+    await breathe(CONFIG.breath.cyclesStart);
+    await learn();
+    while (S.roundsDone < CONFIG.rounds){
+      await playRound();
+      if (my !== runId) return;
+    }
+    await finish();
+  } catch(e){ if (e !== 'stop') throw e; }
+}
+
+/* Звено B: показ всех жестов со звуком */
+async function learn(){
+  show('s-learn'); $('learnGo').classList.add('hidden');
+  for (const g of CONFIG.gestures){
+    fillPic($('learnPic'), g.img); $('learnWord').textContent = g.word; tone(g.freq, 0.5);
+    await wait(1800);
+  }
+  fillPic($('learnPic'), CONFIG.idleImg); $('learnWord').textContent = '';
+  $('learnGo').classList.remove('hidden');
+  await waitTap($('learnGo')); snd.click();
+}
+
+function pickSeq(len){
+  const out = [];
+  while (out.length < len){
+    const i = Math.floor(Math.random() * CONFIG.gestures.length);
+    if (out[out.length - 1] !== i) out.push(i);          // без двух одинаковых подряд
+  }
+  return out;
+}
+async function showSeq(seq){
+  const k = S.support ? CONFIG.supportSlow : 1;
+  $('playPhrase').textContent = CONFIG.phrases.watch;
+  $('replayBtn').classList.add('hidden'); $('doneBtn').classList.add('hidden');
+  for (const gi of seq){
+    const g = CONFIG.gestures[gi];
+    fillPic($('mikiBox'), g.img); tone(g.freq, 0.45);
+    await wait(CONFIG.showMs * k);
+    fillPic($('mikiBox'), CONFIG.idleImg);
+    await wait(CONFIG.gapMs * k);
+  }
+}
+
+/* Звенья F+H: сделать телом, потом выложить порядок */
+async function playRound(){
+  show('s-play');
+  const level = S.burst ? S.burst.level : (isFinalRound() ? Math.max(1, S.level - 1) : S.level);
+  const support = S.burst ? false : (S.support || isFinalRound());   // горная тропа = без опоры
+  const seq = pickSeq(level);
+  $('seqRow').innerHTML = ''; $('cardRow').innerHTML = '';
+  S._support = support;
+
+  await showSeq(seq);
+  $('playPhrase').textContent = CONFIG.phrases.move;
+  $('doneBtn').classList.remove('hidden');
+  await waitTap($('doneBtn')); snd.click();
+  $('doneBtn').classList.add('hidden');
+
+  // выкладка
+  $('playPhrase').textContent = CONFIG.phrases.order;
+  fillPic($('mikiBox'), CONFIG.idleImg);
+  const slots = seq.map(() => { const d = document.createElement('div'); d.className = 'slot pic'; $('seqRow').appendChild(d); return d; });
+  const pool = new Set(seq);
+  const extra = Math.min(CONFIG.extraCards, CONFIG.gestures.length - pool.size);
+  while (pool.size < new Set(seq).size + extra) pool.add(Math.floor(Math.random() * CONFIG.gestures.length));
+  const cards = [...pool].sort(() => Math.random() - 0.5).map(gi => {
+    const b = document.createElement('button'); b.className = 'card pic'; b.dataset.gi = gi;
+    fillPic(b, CONFIG.gestures[gi].img); $('cardRow').appendChild(b); return b;
+  });
+  $('replayBtn').classList.remove('hidden');
+
+  let pos = 0, missesHere = 0;
+  const glow = () => { cards.forEach(c => c.classList.toggle('glow', support && +c.dataset.gi === seq[pos])); };
+  glow();
+  await new Promise((res, rej) => {
+    const my = runId;
+    const onCard = async e => {
+      if (paused || my !== runId) return;
+      const b = e.currentTarget, gi = +b.dataset.gi;
+      audio();
+      if (gi === seq[pos]){
+        snd.place(); tone(CONFIG.gestures[gi].freq, 0.3, 0.1);
+        slots[pos].classList.add('filled'); fillPic(slots[pos], CONFIG.gestures[gi].img);
+        if (!seq.slice(pos + 1).includes(gi)) b.classList.add('used');
+        pos++; glow();
+        if (pos === seq.length){ cards.forEach(c => c.removeEventListener('pointerdown', onCard)); res(); }
+      } else {
+        snd.soft(); missesHere++; S.stats.misses++;
+        wobble(b);
+        if (missesHere >= CONFIG.scaffold.errorsForSupport && !S._support){
+          S._support = true; cards.forEach(c => c.classList.toggle('glow', +c.dataset.gi === seq[pos]));
+        }
+      }
+    };
+    cards.forEach(c => c.addEventListener('pointerdown', onCard));
+    $('replayBtn').onpointerdown = async () => {
+      if (paused) return; S.stats.replays++; snd.click();
+      $('replayBtn').classList.add('hidden');
+      const k = CONFIG.supportSlow;
+      for (const gi of seq){ fillPic($('mikiBox'), CONFIG.gestures[gi].img); tone(CONFIG.gestures[gi].freq, 0.45);
+        try { await wait(CONFIG.showMs * k); } catch(_){ return; } }
+      fillPic($('mikiBox'), CONFIG.idleImg); $('replayBtn').classList.remove('hidden');
+      $('playPhrase').textContent = CONFIG.phrases.order;
+    };
+    runStops.push(() => rej('stop'));
+  });
+  $('replayBtn').onpointerdown = null; $('replayBtn').classList.add('hidden');
+
+  // успех всегда празднуем
+  fillPic($('mikiBox'), CONFIG.happyImg); $('playPhrase').textContent = CONFIG.phrases.good; snd.yes();
+  await wait(1200);
+
+  const clean = missesHere === 0;
+  S.stats.rounds++; if (clean) S.stats.clean++;
+  await afterRound(clean, missesHere);
+}
+function isFinalRound(){ return !S.burst && S.roundsDone === CONFIG.rounds - 1; }
+function wobble(el){ // мягкое покачивание без красного, через rAF
+  const t0 = performance.now();
+  (function f(now){ const p = (now - t0) / 400;
+    el.style.transform = p < 1 ? 'rotate(' + (Math.sin(p * Math.PI * 4) * 6 * (1 - p)) + 'deg)' : '';
+    if (p < 1) requestAnimationFrame(f); })(t0);
+}
+
+/* подстройка трудности + тропа вызова */
+async function afterRound(clean, misses){
+  const C = CONFIG.challenge, SC = CONFIG.scaffold;
+  if (S.burst){ // заход по горной тропе
+    S.burst.left--;
+    S.burst.missRow = clean ? 0 : S.burst.missRow + 1;
+    if (misses >= C.fallbackMisses || S.burst.missRow >= C.fallbackMisses){ // тихий возврат
+      S.failedBursts++; S.burst = null; return;
+    }
+    if (S.burst.left <= 0){ // успешный заход поднимает базу
+      S.level = Math.min(CONFIG.levels.max, Math.max(S.level, S.burst.level));
+      S.stats.maxLevel = Math.max(S.stats.maxLevel, S.burst.level);
+      S.burst = null;
+    }
+    return;
+  }
+  S.roundsDone++;
+  if (clean){ S.okRow++; S.errRow = 0; } else { S.errRow++; S.okRow = 0; }
+  if (S.errRow >= SC.errorsForSupport || misses >= SC.errorsForSupport) S.support = true;
+  if (S.okRow >= SC.correctForLift){
+    S.okRow = 0; S.support = false;
+    const canOffer = C.enabled && CONFIG.mode !== 'auto' && S.offers < C.maxOffersPerSession
+                     && S.failedBursts < C.stopAfterFailedBursts && !lastRounds();
+    if (SC.liftEnabled) { S.level = Math.min(CONFIG.levels.max, S.level + 1); S.stats.maxLevel = Math.max(S.stats.maxLevel, S.level); }
+    if (canOffer) await offerPath();
+  }
+}
+async function offerPath(){
+  S.offers++; show('offer');
+  const choice = await new Promise(res => {
+    const a = () => { off(); res('same'); }, b = () => { off(); res('mountain'); };
+    const off = () => { $('pathSame').removeEventListener('pointerdown', a); $('pathMountain').removeEventListener('pointerdown', b); };
+    $('pathSame').addEventListener('pointerdown', a); $('pathMountain').addEventListener('pointerdown', b);
+  });
+  snd.yes();
+  if (choice === 'mountain'){
+    S.path = 'mountain';
+    S.burst = { level: S.level + CONFIG.challenge.stepUp, left: CONFIG.challenge.burst, missRow:0 };
+  } else if (!S.path) S.path = 'same';
+  await wait(500);
+}
+
+/* Звено A: финал на удаче, 1 цикл дыхания, мостик */
+async function finish(){
+  await breathe(CONFIG.breath.cyclesEnd);
+  show('s-finish'); snd.finish();
+  if (S.path){ const b = $('badge'); b.classList.remove('hidden'); fillPic(b, S.path === 'mountain' ? 'path_mountain.png' : 'path_same.png'); }
+  else $('badge').classList.add('hidden');
+  $('finishPhrase').textContent = S.path ? 'Покажи маме, какую тропу ты выбрал' : 'Покажи маме жесты Мики';
+  $('againBtn').classList.remove('hidden');
+}
+
+/* ═════════════ пауза, окно взрослого ═════════════ */
+let runStops = [];
+function stopAll(){ runId++; runStops.forEach(f => f()); runStops = []; paused = false; }
+function setPause(on){ paused = on; $('pauseOv').classList.toggle('open', on && !$('adultOv').classList.contains('open')); }
+function openAdult(){
+  paused = true; $('pauseOv').classList.remove('open');
+  const st = S ? S.stats : null;
+  $('stats').textContent = st ? ('Сейчас: раундов ' + st.rounds + ', без промаха ' + st.clean + ', повторов показа ' + st.replays + ', самая длинная цепочка ' + st.maxLevel + '. Только для вас, никуда не сохраняется.') : '';
+  document.querySelectorAll('#modeSet .opt').forEach(b => b.classList.toggle('on', b.dataset.mode === CONFIG.mode));
+  document.querySelectorAll('#liftSet .opt').forEach(b => b.classList.toggle('on', (b.dataset.lift === 'on') === CONFIG.scaffold.liftEnabled));
+  $('adultOv').classList.add('open');
+}
+function closeAdult(){ $('adultOv').classList.remove('open'); paused = false; }
+function restart(){ stopAll(); $('adultOv').classList.remove('open'); $('pauseOv').classList.remove('open'); show('s-intro'); }
+
+$('startBtn').addEventListener('pointerdown', () => { audio(); snd.click(); run(); });
+$('againBtn').addEventListener('pointerdown', () => { audio(); snd.click(); $('againBtn').classList.add('hidden'); run(); });
+$('pauseBtn').addEventListener('pointerdown', () => { audio(); setPause(true); });
+$('resumeBtn').addEventListener('pointerdown', () => setPause(false));
+$('restartBtn').addEventListener('pointerdown', restart);
+$('soundBtn').addEventListener('pointerdown', () => { audio(); setSound(!soundOn); });
+$('sheetSound').addEventListener('pointerdown', () => { audio(); setSound(!soundOn); });
+$('adultBtn').addEventListener('pointerdown', () => { audio(); openAdult(); });
+$('adultClose').addEventListener('pointerdown', closeAdult);
+$('sheetRestart').addEventListener('pointerdown', restart);
+document.querySelectorAll('#modeSet .opt').forEach(b => b.addEventListener('pointerdown', () => { CONFIG.mode = b.dataset.mode; openAdult(); }));
+document.querySelectorAll('#liftSet .opt').forEach(b => b.addEventListener('pointerdown', () => { CONFIG.scaffold.liftEnabled = b.dataset.lift === 'on'; openAdult(); }));
+document.addEventListener('visibilitychange', () => { if (document.hidden && !$('s-intro').classList.contains('active')) setPause(true); });
+
+fillAll(document); setSound(true);
+</script>
+</body>
+</html>
