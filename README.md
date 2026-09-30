@@ -1,9 +1,10 @@
 # for-Claude — рабочее пространство проекта «Дядя Миша»
 
 - `tz/` — технические задания на игры
-- `games/drafts/`, `games/final/` — черновики и финальные HTML-игры
-- `assets/images/`, `assets/audio/` — PNG и звук от Михаила
-- `research/` — исследования, научный бэкграунд
+- `games/drafts/`, `games/final/` — черновики и финальные HTML-игры (рядом `NE_HVATAET_<игра>.md`)
+- `assets/library/` — ЕДИНАЯ библиотека: `png/`, `golos/obshchie|slova|<игра>/`, `KATALOG.md`
+- `research/` — исследования, консилиумы, уроки сборки
 - `prompts/` — промпты (правка игры, картинки)
-- `skills-backup/` — бэкап SKILL.md из скиллов
+- `.claude/skills/` — скиллы проекта (подхватываются автоматически), `.claude/agents/` — агенты
+- `tools/` — тесты и скрипты
 - `cases/` — приватно, в git не попадает

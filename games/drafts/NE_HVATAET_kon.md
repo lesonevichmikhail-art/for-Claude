@@ -1,25 +1,15 @@
-# Не хватает для «Коня» v2
+# Не хватает для «Коня» v3
 
-Пока картинок нет, в игре стоят серые прямоугольники с именем файла. Как только пришлёте PNG, я вставлю их и пересоберу без заглушек.
+Игра собрана и проходится целиком. Из библиотеки вшито: кнопка «ухо», кнопка «Играть», картинка мостика (ребёнок несёт телефон маме) и голос `ob_dyshim`, `ob_vdoh`, `ob_vydoh`, `ob_poslushay`, `ob_otnesi`.
 
-Хвост промпта для всех картинок (из общих правил игр):
-> flat warm vector illustration, thick dark-brown outline, earthy warm palette (terracotta, ochre, olive green, cream, soft brown), rounded simple shapes, friendly calm expression, children's educational game asset, centered, full figure, transparent background, PNG, no text, no letters, no drop shadow
-
-Добавка для junior: `very round shapes, big eyes, chubby proportions, cute`
-
-## Картинки (512×512, прозрачный фон)
+## Картинки (2, 512×512, прозрачный фон)
+Хвост промпта: flat warm vector illustration, thick dark-brown outline, earthy warm palette (terracotta, ochre, olive green, cream, soft brown), rounded simple shapes, friendly calm expression, children's educational game asset, centered, full figure, transparent background, PNG, no text, no letters, no drop shadow.
 | Файл | Где виден | Промпт (перед хвостом) |
 |---|---|---|
-| `path_same.png` | кнопка «та же тропа» в предложении; сюжет: обычная дорога | a simple calm forest path going straight ahead between two small green trees |
-| `path_mountain.png` | кнопка «горная тропа»; маленький значок в углу сцены на заходе; значок в финале | a narrow winding path going up a rocky mountain with a small flag at the top |
-| `bridge_adult.png` | финал, третий значок: «покажи взрослому» | a small child hand and a large adult hand giving a high five, warm skin tones, no faces |
+| `path_same.png` | кнопка «та же тропа» в предложении вызова | a simple calm forest path going straight ahead between two small green trees |
+| `path_mountain.png` | кнопка «горная тропа»; значок в углу сцены на заходе; значок в финале | a narrow winding path going up a rocky mountain with a small flag at the top |
+Значки должны читаться в маленьком размере: крупные простые формы.
+Пока их нет, стоят серые прямоугольники с именами файлов.
 
-Значок должен читаться в маленьком размере: простые крупные формы, мало деталей.
-
-## Голос (по желанию, не блокирует)
-Сейчас в финале серая полоска с текстом. Когда запишете, я вшью mp3 и выключу полоску (`DATA.voice.draft = false`).
-| Файл | Фраза |
-|---|---|
-| `kon_bridge_1.mp3` | Покажи маме, что получилось |
-| `kon_bridge_2.mp3` | Покажи маме, какую тропу ты выбрал |
-Памятка записи: Windows «Звукозапись», один раздел — один файл, пауза 2 секунды между фразами, ошибся — скажите «брак» и прочитайте заново.
+## Голос (7 фраз, `ZAPIS_kon.md`)
+Пока нет mp3: мягкий «дзынь» и полоска внизу с текстом. Игра проходится целиком.

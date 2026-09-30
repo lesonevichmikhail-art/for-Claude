@@ -3,7 +3,7 @@
 Источник: E01 «Звонкий или глухой мотор» (2026-09-30). Голос — живой голос Михаила, mp3 моно 44.1 кГц 96 кбит/с.
 Имена = ключи в ASSETS / VOICE. Новая игра берёт отсюда, в список Михаилу — только недостающее.
 
-## PNG (30)
+## PNG (первые 30, из E01)
 - **Герои:** geroy_most_nesi_telefon, geroy_pilot_bez_shlema, geroy_pilot_kvadrocikl, geroy_pilot_zastryal, geroy_yozhik
 - **Предметы:** predmet_kvadrocikl, predmet_ladoni, predmet_motor_drozhit, predmet_motor_tihiy, predmet_perchatki, predmet_shlem
 - **Фоны:** fon_chuzhoe_pole, fon_derevnya, fon_garazh, fon_lesnaya_trassa
@@ -54,3 +54,33 @@
 - ob_pozovi и ob_otnesi склеены из двух кусков; ob_otnesi говорит «…маме, папе, бабушке или дедушке».
 - ob_vdoh в записи начинается без паузы — при случае перезаписать.
 - predmet_kvadrocikl и geroy_pilot_kvadrocikl уже отзеркалены: смотрят вправо.
+
+## PNG из игры «Конь бежит по тайге» (19, добавлены 2026-09-30)
+- **Герои:** geroy_kon_stoit, geroy_kon_shag, geroy_kon_pyot (один общий бокс 440×364: смена кадра без прыжков), geroy_kon_otdyhaet (500×323)
+- **Предметы:** predmet_koster_malenkiy, predmet_koster_bolshoy (один бокс), predmet_reka, predmet_derevo_tayga, predmet_svetofor
+- **Фоны:** fon_gory
+- **Иконки:** ikonka_zvuk_vkl, ikonka_zvuk_vykl, ikonka_spravka, ikonka_strelki_naoborot, ikonka_stop_ladon
+- **Иконки в стиле «Коня»** (отличаются от одноимённых выше, суффикс _kon): ikonka_domoy_kon, ikonka_eshche_raz_kon, ikonka_nos_kon, ikonka_rot_kon
+- В файле игры те же картинки называются: horse_stand, horse_step, horse_drink, horse_rest, fire_small, fire_big, river, mountains, tree, btn_home, btn_restart, btn_sound_on, btn_sound_off, btn_help, nose, lips, arrow, light, stophand.
+
+## PNG из других игр (имена не по стандарту, переименовать при случае)
+- «Птичка Пи и Мишка Бу»: bird_pi, bear_bu
+- «Смотри и запомни»: owl_stand, owl_wings_up, breath_nose, breath_mouth
+
+## Где что используется (выборка)
+- «Конь» v3: ikonka_uho (кнопка повтора), ikonka_igrat (вход), geroy_most_nesi_telefon (мостик в финале), голос ob_dyshim, ob_vdoh, ob_vydoh, ob_poslushay, ob_otnesi.
+
+## Голос: «Конь» (golos/kon), mp3 ещё не записаны
+- kon_topay — «Топай вместе.»
+- kon_reka — «У реки тишина. Стоим.»
+- kon_dyn — «Услышал «динь» — прыгаем.»
+- kon_naoborot — «Теперь наоборот.»
+- kon_vybor — «Какую тропу выберешь?»
+- kon_doehali — «Доехали. Конь отдыхает.»
+- kon_bridge_gornaya — «Покажи маме, какую тропу ты выбрал.»
+
+## Нужны PNG (нет в библиотеке)
+- path_same — «та же тропа» (дорожка между деревьями); path_mountain — «горная тропа» (тропа вверх по скале с флажком). Промпты в `games/drafts/NE_HVATAET_kon.md`.
+
+## Правила библиотеки
+- Одно место: `assets/library/`. Любой присланный PNG или mp3 кладём сюда сразу и дописываем строку в каталог. Подробнее: `.claude/skills/rech-i-biblioteka`.
