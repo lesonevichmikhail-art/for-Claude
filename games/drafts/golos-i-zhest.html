@@ -227,14 +227,16 @@ const CONFIG = {
   },
   gestures: [
     { id:'armsUp', word:'Руки вверх', img:'miki_armsUp.png', freq:392.00 },
-    { id:'squat',  word:'Присесть',   img:'miki_squat.png',  freq:293.66 },
-    { id:'clap',   word:'Хлопок',     img:'miki_clap.png',   freq:523.25 },
-    { id:'lean',   word:'Наклон',     img:'miki_lean.png',   freq:329.63 },
-    { id:'jump',   word:'Прыжок',     img:'miki_jump.png',   freq:440.00 },
-    { id:'spin',   word:'Кружок',     img:'miki_spin.png',   freq:587.33 }
+    { id:'squat',  word:'Присядь',    img:'miki_squat.png',  freq:293.66 },
+    { id:'clap',   word:'Хлопни',     img:'miki_clap.png',   freq:523.25 },
+    { id:'lean',   word:'Рука на голову', img:'miki_lean.png',   freq:329.63 },
+    { id:'jump',   word:'Прыгни',     img:'miki_jump.png',   freq:440.00 },
+    { id:'spin',   word:'Покружись',  img:'miki_spin.png',   freq:587.33 }
   ],
   idleImg: 'miki_idle.png',
   happyImg: 'miki_happy.png',
+  // Голос Михаила: 'ключ': 'data:audio/mpeg;base64,...'. Пусто → игра молчит, только ноты.
+  voice: {},
   phrases: { watch:'Смотри и слушай', move:'Повтори телом', order:'Что показал Мики?', good:'Да!' },
   breath: { inhale:4000, exhale:5000, cyclesStart:3, cyclesEnd:1 },
   rounds: 8,                 // раундов в занятии (без захода по горной тропе)
@@ -287,6 +289,15 @@ function setSound(on){
   document.getElementById('sheetSound').classList.toggle('on', on);
 }
 
+const voiceBuf = {};
+async function say(key){
+  const src = CONFIG.voice[key]; if (!src || !actx || !soundOn) return;
+  try {
+    if (!voiceBuf[key]) voiceBuf[key] = await actx.decodeAudioData(await (await fetch(src)).arrayBuffer());
+    const n = actx.createBufferSource(); n.buffer = voiceBuf[key]; n.connect(master); n.start(actx.currentTime);
+  } catch(e){}
+}
+
 /* ═════════════ время с паузой ═════════════ */
 let paused = false, runId = 0;
 function wait(ms){
@@ -335,9 +346,9 @@ function animateBreath(from, to, ms){
 async function breathe(cycles, phraseIn = 'Вдох', phraseOut = 'Выдох'){
   show('s-breath'); setBreath(0);
   for (let i = 0; i < cycles; i++){
-    $('breathPhrase').textContent = phraseIn; snd.inhale();
+    $('breathPhrase').textContent = phraseIn; snd.inhale(); say('inhale');
     await animateBreath(0, 1, CONFIG.breath.inhale);
-    $('breathPhrase').textContent = phraseOut; snd.exhale();
+    $('breathPhrase').textContent = phraseOut; snd.exhale(); say('exhale');
     await animateBreath(1, 0, CONFIG.breath.exhale);
   }
 }
@@ -369,7 +380,7 @@ async function run(){
 async function learn(){
   show('s-learn'); $('learnGo').classList.add('hidden');
   for (const g of CONFIG.gestures){
-    fillPic($('learnPic'), g.img); $('learnWord').textContent = g.word; tone(g.freq, 0.5);
+    fillPic($('learnPic'), g.img); $('learnWord').textContent = g.word; tone(g.freq, 0.5); say('g_' + g.id);
     await wait(1800);
   }
   fillPic($('learnPic'), CONFIG.idleImg); $('learnWord').textContent = '';
@@ -387,7 +398,7 @@ function pickSeq(len){
 }
 async function showSeq(seq){
   const k = S.support ? CONFIG.supportSlow : 1;
-  $('playPhrase').textContent = CONFIG.phrases.watch;
+  $('playPhrase').textContent = CONFIG.phrases.watch; say('watch');
   $('replayBtn').classList.add('hidden'); $('doneBtn').classList.add('hidden');
   for (const gi of seq){
     const g = CONFIG.gestures[gi];
@@ -408,13 +419,13 @@ async function playRound(){
   S._support = support;
 
   await showSeq(seq);
-  $('playPhrase').textContent = CONFIG.phrases.move;
+  $('playPhrase').textContent = CONFIG.phrases.move; say('move');
   $('doneBtn').classList.remove('hidden');
   await waitTap($('doneBtn')); snd.click();
   $('doneBtn').classList.add('hidden');
 
   // выкладка
-  $('playPhrase').textContent = CONFIG.phrases.order;
+  $('playPhrase').textContent = CONFIG.phrases.order; say('order');
   fillPic($('mikiBox'), CONFIG.idleImg);
   const slots = seq.map(() => { const d = document.createElement('div'); d.className = 'slot pic'; $('seqRow').appendChild(d); return d; });
   const pool = new Set(seq);
@@ -464,7 +475,7 @@ async function playRound(){
   $('replayBtn').onpointerdown = null; $('replayBtn').classList.add('hidden');
 
   // успех всегда празднуем
-  fillPic($('mikiBox'), CONFIG.happyImg); $('playPhrase').textContent = CONFIG.phrases.good; snd.yes();
+  fillPic($('mikiBox'), CONFIG.happyImg); $('playPhrase').textContent = CONFIG.phrases.good; snd.yes(); say('good');
   await wait(1200);
 
   const clean = missesHere === 0;
@@ -507,7 +518,7 @@ async function afterRound(clean, misses){
   }
 }
 async function offerPath(){
-  S.offers++; show('offer');
+  S.offers++; show('offer'); say('path');
   const choice = await new Promise(res => {
     const a = () => { off(); res('same'); }, b = () => { off(); res('mountain'); };
     const off = () => { $('pathSame').removeEventListener('pointerdown', a); $('pathMountain').removeEventListener('pointerdown', b); };
@@ -528,6 +539,7 @@ async function finish(){
   if (S.path){ const b = $('badge'); b.classList.remove('hidden'); fillPic(b, S.path === 'mountain' ? 'path_mountain.png' : 'path_same.png'); }
   else $('badge').classList.add('hidden');
   $('finishPhrase').textContent = S.path ? 'Покажи маме, какую тропу ты выбрал' : 'Покажи маме жесты Мики';
+  say(S.path ? 'finish_path' : 'finish');
   $('againBtn').classList.remove('hidden');
 }
 
