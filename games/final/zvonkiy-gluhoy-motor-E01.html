@@ -1338,7 +1338,8 @@ function setupButtons(){
 document.addEventListener('visibilitychange',()=>{ if(document.hidden && !['intro','bridge'].includes(S.screen)) openPause(); else if(document.hidden) V.pause(); else if(['intro','bridge'].includes(S.screen)) V.resume(); });
 /* все кнопки срабатывают на касание (pointerdown), без задержки click; двойного срабатывания нет */
 document.addEventListener('pointerdown',e=>{
-  const b=e.target.closest && e.target.closest('button'); if(!b || b.disabled || b.hasAttribute('data-own')) return;
+  const b=e.target.closest && e.target.closest('button');
+  if(!b || b.disabled || b.hasAttribute('data-own')){ RT.pdGhost=false; return; }   // новое касание не по кнопке — старый флаг снят
   RT.pdGhost=true; b.click();
 },true);
 /* «призрачный» click после касания гасим везде — и на кнопке, и на окне, которое она открыла */
