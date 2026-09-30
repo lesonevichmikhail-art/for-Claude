@@ -3,7 +3,7 @@
 Библиотека PNG_LIBRARY не подключена — **сверь с библиотекой**, что уже есть (слонёнок, носки, иконки паузы/уха могут быть).
 
 ## Картинки
-Уже вставлены (2026-09-30): predmet_dom, predmet_kot, predmet_delfin (вместо рыбы), predmet_myach, predmet_banan, predmet_zont, predmet_sova, predmet_yabloko, predmet_ryba (рыба вернулась, дельфин остался 13-м предметом). Лежат в `assets/images/`.
+Уже вставлены (2026-09-30): predmet_dom, predmet_kot, predmet_delfin (вместо рыбы), predmet_myach, predmet_banan, predmet_zont, predmet_sova, predmet_yabloko, predmet_luna, predmet_grib, predmet_lodka, predmet_dva_noska (шахматку убрал `tools/ubrat_shahmatku.py`), predmet_ryba (рыба вернулась, дельфин остался 13-м предметом). Лежат в `assets/images/`.
 
 Хвост стиля (добавлять к каждому промпту):
 > flat warm vector illustration, thick dark-brown outline, earthy warm palette (terracotta, ochre, olive green, cream, soft brown), rounded simple shapes, friendly calm expression, children's educational game asset, centered, full figure, transparent background, PNG, no text, no letters unless specified, no drop shadow, very round shapes, big eyes, chubby proportions, cute
@@ -15,11 +15,7 @@
 | geroy_slonenok_topa_raduetsya.png | 1024×1024 | the same baby elephant happy, trunk up, gentle smile, |
 | geroy_slonenok_topa_dyshit.png | 1024×1024 | the same baby elephant sitting calmly with eyes half closed, breathing in, peaceful, |
 | geroy_slonenok_topa_mashet.png | 1024×1024 | the same baby elephant waving goodbye with its ear and trunk, |
-| predmet_luna.png | 512×512 | a crescent moon, |
-| predmet_lodka.png | 512×512 | a small boat, |
-| predmet_grib.png | 512×512 | a mushroom, |
 | predmet_shapka.png | 512×512 | a knitted winter hat, |
-| predmet_dva_noska.png | 512×512 | two identical socks side by side, |
 | ikonka_rubashka_karty.png | 512×512 | card back pattern, a simple ochre square with a small elephant footprint in the center, no character, |
 | ikonka_tropa_rovnaya.png | 512×512 | a flat easy meadow path with grass, |
 | ikonka_tropa_gornaya.png | 512×512 | a winding path going up a gentle mountain, |
