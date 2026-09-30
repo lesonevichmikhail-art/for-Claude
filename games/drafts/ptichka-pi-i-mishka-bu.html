@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Птичка Пи и Мишка Бу</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+    background: #fdf6ec; color: #4a3426; user-select: none; touch-action: manipulation;
+  }
+  .screen {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 3vh; padding: 12vh 4vw 4vh;
+  }
+  .screen.on { display: flex; }
+
+  /* Заглушка вместо PNG: серый прямоугольник с именем файла */
+  .ph {
+    background: #cfcac3; border: 3px dashed #8d857b; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    color: #4a4540; font-size: max(14px, 1.8vmin); padding: 6px; word-break: break-all;
+  }
+  .pic { width: 100%; height: 100%; object-fit: contain; }
+
+  .phrase { font-size: max(22px, 4.5vmin); font-weight: 700; text-align: center; min-height: 1.3em; }
+  .sign { position: absolute; top: 10px; left: 12px; font-size: max(14px, 1.8vmin); color: #8a6a55; }
+
+  .big-btn {
+    min-width: 64px; min-height: 64px; padding: 2vmin 6vmin; border: 4px solid #6b4a36;
+    border-radius: 999px; background: #e9a15f; color: #3b2418;
+    font-size: max(22px, 4vmin); font-weight: 700; cursor: pointer;
+  }
+
+  /* Верхние кнопки: пауза и окно взрослого */
+  .top { position: fixed; top: 10px; right: 12px; display: flex; gap: 12px; z-index: 20; }
+  .round-btn {
+    width: 64px; height: 64px; border-radius: 50%; border: 4px solid #6b4a36; background: #f5e3cc;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    font-size: 28px; font-weight: 700; color: #6b4a36; font-family: Georgia, serif;
+  }
+  .bars { display: flex; gap: 7px; }
+  .bars i { display: block; width: 8px; height: 26px; background: #6b4a36; border-radius: 3px; }
+  .tri { width: 0; height: 0; border-left: 34px solid #6b4a36; border-top: 22px solid transparent; border-bottom: 22px solid transparent; margin-left: 8px; }
+
+  /* Дыхание */
+  .breath-wrap { position: relative; width: min(60vw, 50vh); height: min(60vw, 50vh); display: flex; align-items: center; justify-content: center; }
+  .breath-circle { position: absolute; inset: 0; border-radius: 50%; background: #f2c894; border: 5px solid #c98a4b; }
+  .breath-pic { position: relative; width: 55%; height: 55%; }
+
+  /* Два героя */
+  .duo { display: flex; gap: 6vw; align-items: flex-end; justify-content: center; }
+  .tile {
+    width: min(38vw, 40vh); height: min(38vw, 40vh); border-radius: 30px; background: #fff8ee;
+    border: 5px solid #e2cfb6; padding: 2vmin; cursor: pointer; position: relative;
+  }
+  .tile.glow { border-color: #e9a15f; box-shadow: 0 0 0 8px rgba(233,161,95,.35); }
+
+  /* Ушко-слушалка: пока оно «слушает», герои спят */
+  .ear { width: min(20vw, 16vh); height: min(20vw, 16vh); }
+  .wait-bar { width: min(50vw, 40vh); height: 18px; border-radius: 9px; background: #efe0cc; overflow: hidden; border: 3px solid #d9c2a3; }
+  .wait-fill { height: 100%; width: 0; background: #b7c48a; }
+
+  /* Приглашение на тропу */
+  .trails { display: flex; gap: 6vw; }
+  .trail { width: min(36vw, 38vh); height: min(36vw, 38vh); border-radius: 30px; border: 5px solid #e2cfb6; background: #fff8ee; padding: 2vmin; cursor: pointer; }
+  .together { font-size: max(16px, 2.2vmin); color: #8a6a55; min-height: 1.2em; }
+
+  .badge { width: min(22vw, 20vh); height: min(22vw, 20vh); }
+
+  /* Оверлеи */
+  .overlay { position: fixed; inset: 0; background: rgba(60,40,28,.55); display: none; align-items: center; justify-content: center; z-index: 50; }
+  .overlay.on { display: flex; }
+  .pause-box { background: #fdf6ec; border-radius: 30px; padding: 5vmin; display: flex; gap: 4vmin; align-items: center; }
+  .pause-box .round-btn { width: 88px; height: 88px; }
+  .sheet {
+    background: #fdf6ec; border-radius: 24px; width: min(92vw, 640px); max-height: 90vh; overflow-y: auto;
+    padding: 24px; font-size: 17px; line-height: 1.45; position: relative;
+  }
+  .sheet h2 { font-size: 21px; margin: 14px 0 6px; }
+  .sheet ul { padding-left: 22px; }
+  .sheet .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+  .opt { min-height: 48px; padding: 8px 14px; border-radius: 14px; border: 3px solid #c9b193; background: #fff; font-size: 16px; cursor: pointer; }
+  .opt.sel { background: #f2c894; border-color: #a86f3c; font-weight: 700; }
+  .sheet .close { position: absolute; top: 12px; right: 12px; }
+  .note { color: #7a5d4a; font-size: 15px; }
+  .sheet-sign { margin-top: 18px; text-align: right; color: #8a6a55; }
+
+  @media (orientation: landscape) and (max-height: 500px) {
+    .screen { padding-top: 10vh; gap: 2vh; }
+    .phrase { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== ЭКРАНЫ ===================== -->
+
+<!-- Заставка -->
+<section class="screen on" id="scrSplash">
+  <div class="sign">Дядя Миша</div>
+  <div class="duo">
+    <div class="tile" data-img="bird_pi"></div>
+    <div class="tile" data-img="bear_bu"></div>
+  </div>
+  <button class="big-btn" id="btnStart">Играть</button>
+</section>
+
+<!-- I блок Лурии: дыхание (энергия, тонус, успокоение) -->
+<section class="screen" id="scrBreath">
+  <div class="breath-wrap">
+    <div class="breath-circle" id="breathCircle"></div>
+    <div class="breath-pic" id="breathPic" data-img="breath_bird_bear"></div>
+  </div>
+  <div class="phrase" id="breathWord"></div>
+</section>
+
+<!-- II блок Лурии: восприятие, знакомство с голосами -->
+<section class="screen" id="scrLearn">
+  <div class="phrase" id="learnPhrase">Нажми и послушай.</div>
+  <div class="duo">
+    <div class="tile" id="learnBird" data-img="bird_pi"></div>
+    <div class="tile" id="learnBear" data-img="bear_bu"></div>
+  </div>
+  <button class="big-btn" id="btnLearnGo" style="visibility:hidden">Дальше</button>
+</section>
+
+<!-- II + III блок Лурии: различение высоты и торможение (дождаться конца звука) -->
+<section class="screen" id="scrPlay">
+  <div class="ear" id="ear" data-img="ear_listen"></div>
+  <div class="wait-bar"><div class="wait-fill" id="waitFill"></div></div>
+  <div class="phrase" id="playPhrase"></div>
+  <div class="duo">
+    <div class="tile" id="tileBird" data-img="bird_pi"></div>
+    <div class="tile" id="tileBear" data-img="bear_bu"></div>
+  </div>
+</section>
+
+<!-- III блок Лурии: выбор тропы (программирование своего действия) -->
+<section class="screen" id="scrInvite">
+  <div class="phrase">Какая тропа?</div>
+  <div class="trails">
+    <div class="trail" id="trailSame" data-img="trail_same"></div>
+    <div class="trail" id="trailMountain" data-img="trail_mountain"></div>
+  </div>
+  <div class="together" id="togetherHint"></div>
+</section>
+
+<!-- Завершение: перенос, спокойный финал, прощание -->
+<section class="screen" id="scrFinish">
+  <div class="duo">
+    <div class="tile" data-img="bird_pi_bye"></div>
+    <div class="tile" data-img="bear_bu_bye"></div>
+  </div>
+  <div class="badge" id="finishBadge"></div>
+  <div class="phrase" id="finishPhrase"></div>
+  <button class="big-btn" id="btnAgain" style="visibility:hidden">Ещё</button>
+</section>
+
+<!-- Верхние кнопки -->
+<div class="top">
+  <div class="round-btn" id="btnPause" title="Пауза"><div class="bars"><i></i><i></i></div></div>
+  <div class="round-btn" id="btnAdult" title="Для взрослого">i</div>
+</div>
+
+<!-- Пауза -->
+<div class="overlay" id="ovPause">
+  <div class="pause-box">
+    <div class="round-btn" id="btnResume" title="Дальше"><div class="tri"></div></div>
+    <button class="opt" id="btnRestart">Сначала</button>
+    <button class="opt" id="btnExit">Выход</button>
+  </div>
+</div>
+
+<!-- Окно взрослого -->
+<div class="overlay" id="ovAdult">
+  <div class="sheet" id="adultsSheet">
+    <div class="round-btn close" id="btnAdultClose">×</div>
+    <h2>Птичка Пи и Мишка Бу</h2>
+    <p><b>Правило:</b> дослушай звук до конца, потом покажи, кто пел: высоко Птичка, низко Мишка.</p>
+    <h2>Что тренирует</h2>
+    <p>Различение высоты звука (основа фонематического слуха) и торможение: не отвечать, пока звук не закончился. Эффект не замерен.</p>
+    <h2>Как помочь</h2>
+    <ul>
+      <li>Сами покажите: высокий звук — рука вверх, низкий — рука вниз.</li>
+      <li>Если спешит — положите ладонь на стол рядом: «Слушаем… теперь».</li>
+      <li>После игры спойте тонко, как Пи, и порычите низко, как Бу.</li>
+    </ul>
+    <h2>Если трудно</h2>
+    <p>Игра сама замедлит звук и даст послушать оба голоса перед загадкой. Можно вернуться на экран знакомства (кнопка «Сначала»).</p>
+    <h2>Сколько играть</h2>
+    <p>Один заход — около 5 минут. 1–2 раза в день, не подряд.</p>
+    <h2>Что видно сейчас</h2>
+    <p id="adultObs" class="note"></p>
+    <p class="note" id="adultTrailNote"></p>
+
+    <h2>Настройки</h2>
+    <div class="row">Возраст:
+      <button class="opt" data-age="junior">5–8</button>
+      <button class="opt" data-age="senior">8–10</button>
+    </div>
+    <div class="row">Трудность:
+      <button class="opt" data-mode="auto">игра сама</button>
+      <button class="opt" data-mode="child">и так, и так</button>
+      <button class="opt" data-mode="together">вместе</button>
+    </div>
+    <div class="row">Подъём уровня:
+      <button class="opt" data-lift="on">да</button>
+      <button class="opt" data-lift="off">нет (для очень возбудимых)</button>
+    </div>
+    <div class="row">Звук:
+      <button class="opt" data-sound="on">вкл</button>
+      <button class="opt" data-sound="off">выкл</button>
+    </div>
+    <p class="note">Игра не заменяет занятия с логопедом и работу со слухом у специалиста. Если ребёнок совсем не различает высокий и низкий звук — покажите слух врачу.</p>
+    <div class="sheet-sign">Дядя Миша</div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  DATA — весь контент и числа. Логику ниже трогать не нужно.
+// ============================================================
+const DATA = {
+  age: 'junior',               // junior | senior (переключается в окне взрослого)
+  mode: 'child',               // auto = игра сама; child = и так, и так (по умолчанию); together = вместе
+  liftLevel: true,             // подъём уровня; выключить для очень возбудимых детей
+  rounds: 8,                   // загадок за заход
+  breath: { inhaleMs: 3500, exhaleMs: 4500, cyclesStart: 3, cyclesEnd: 1 },
+  toneMs: 900,                 // длина звука-загадки (одинакова на всех уровнях: темп не ускоряем)
+  supportToneMs: 1400,         // длина звука при опоре (замедление)
+  learnTapsNeeded: 2,          // сколько раз послушать каждого героя на знакомстве
+  // Уровни: чем выше, тем ближе голоса и тем дольше ждать после звука (удержание, а не скорость)
+  levels: [
+    { hi: [880, 940], lo: [150, 175], waitMs: 300,  sameTimbre: false },
+    { hi: [740, 800], lo: [220, 250], waitMs: 700,  sameTimbre: false },
+    { hi: [620, 660], lo: [290, 320], waitMs: 1100, sameTimbre: true  },
+    { hi: [540, 570], lo: [350, 375], waitMs: 1600, sameTimbre: true  }
+  ],
+  scaffold: { errorsForSupport: 2, correctForLift: 3 },
+  challenge: {
+    enabled: true,
+    offerAfterCorrect: 3,
+    stepUp: 1,
+    burstLength: [4, 6],
+    maxOffersPerSession: 2,
+    stopAfterFailedBursts: 2,
+    fallbackMisses: 2,
+    noOfferInLast: 2
+  },
+  text: {
+    junior: { learn: 'Нажми и послушай.', listen: 'Слушай…', answer: 'Кто пел?', again: 'Ещё раз.', breathIn: 'Вдох', breathOut: 'Выдох',
+              finish: 'Спой как Пи. Порычи как Бу.', bridge: 'Покажи маме свою тропу.', bye: 'Пока!' },
+    senior: { learn: 'Послушай, как поют герои.', listen: 'Слушай до конца…', answer: 'Кто это был?', again: 'Послушай ещё раз.', breathIn: 'Вдох', breathOut: 'Выдох',
+              finish: 'Спой тонко, как Пи, и низко, как Бу.', bridge: 'Расскажи взрослому, какую тропу выбрал.', bye: 'До встречи!' }
+  }
+};
+
+// Картинки: сюда вшиваются PNG base64 ('data:image/png;base64,...'). Пусто — серая заглушка.
+const IMG = {
+  bird_pi: '', bear_bu: '',                 // герои спокойно стоят
+  bird_pi_sing: '', bear_bu_growl: '',      // герой поёт / рычит (удачный ответ, знакомство)
+  bird_pi_sleep: '', bear_bu_sleep: '',     // герой дремлет, пока звучит загадка
+  bird_pi_bye: '', bear_bu_bye: '',         // машут на прощание
+  breath_bird_bear: '',                     // оба героя дышат вместе
+  ear_listen: '',                           // ушко-слушалка
+  trail_same: '', trail_mountain: ''        // тропы: своя и горная (для приглашения и значка)
+};
+
+// ============================================================
+//  Картинки / заглушки
+// ============================================================
+function setImg(el, name) {
+  el.dataset.cur = name;
+  el.innerHTML = '';
+  if (IMG[name]) {
+    const im = document.createElement('img'); im.className = 'pic'; im.src = IMG[name]; im.alt = '';
+    el.appendChild(im);
+  } else {
+    const d = document.createElement('div'); d.className = 'ph'; d.style.width = '100%'; d.style.height = '100%';
+    d.textContent = '[' + name + '.png]';
+    el.appendChild(d);
+  }
+}
+document.querySelectorAll('[data-img]').forEach(el => setImg(el, el.dataset.img));
+const $ = id => document.getElementById(id);
+const T = () => DATA.text[DATA.age];
+
+// ============================================================
+//  Игровые часы: идут только без паузы. Все ожидания — через них.
+// ============================================================
+const clock = { t: 0, last: null, paused: false };
+let waiters = [];
+let frameHooks = [];
+function frame(now) {
+  if (clock.last === null) clock.last = now;
+  const dt = Math.min(100, now - clock.last); clock.last = now;
+  if (!clock.paused) {
+    clock.t += dt;
+    const due = waiters.filter(w => clock.t >= w.at);
+    waiters = waiters.filter(w => clock.t < w.at);
+    due.forEach(w => w.res());
+    frameHooks.forEach(h => h(clock.t));
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+function wait(ms) { return new Promise(res => waiters.push({ at: clock.t + ms, res })); }
+
+// Ожидание касания (любого из списка элементов). Сброс игры — просто забываем промисы.
+let tapWaiter = null;
+function waitTap(ids) { return new Promise(res => { tapWaiter = { ids, res }; }); }
+function onTap(id) {
+  if (clock.paused) return false;
+  if (tapWaiter && tapWaiter.ids.includes(id)) { const w = tapWaiter; tapWaiter = null; w.res(id); return true; }
+  return false;
+}
+
+// ============================================================
+//  Звук: только WebAudio, мягко, по actx.currentTime
+// ============================================================
+let actx = null, master = null, soundOn = true;
+function audioInit() {
+  if (!actx) {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    master = actx.createGain(); master.gain.value = 0.8;
+    const comp = actx.createDynamicsCompressor();
+    master.connect(comp); comp.connect(actx.destination);
+  }
+  if (actx.state === 'suspended' && !clock.paused) actx.resume();
+}
+function env(g, t0, peak, dur, att = 0.04, rel = 0.18) {
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(peak, t0 + att);
+  g.gain.setValueAtTime(peak, t0 + Math.max(att, dur - rel));
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+}
+// Голос героя. kind: 'bird' | 'bear'. sameTimbre — одинаковый тембр (различать только по высоте).
+function voice(kind, freq, ms, sameTimbre) {
+  if (!soundOn || !actx) return;
+  const t0 = actx.currentTime + 0.03, dur = ms / 1000;
+  const osc = actx.createOscillator(), g = actx.createGain(), lp = actx.createBiquadFilter();
+  lp.type = 'lowpass';
+  if (sameTimbre) { osc.type = 'triangle'; lp.frequency.value = 2400; }
+  else if (kind === 'bird') { osc.type = 'triangle'; lp.frequency.value = 3200; }
+  else { osc.type = 'sawtooth'; lp.frequency.value = freq * 3; }
+  osc.frequency.setValueAtTime(freq, t0);
+  // лёгкое вибрато — живой голос
+  const lfo = actx.createOscillator(), lg = actx.createGain();
+  lfo.frequency.value = kind === 'bird' && !sameTimbre ? 6 : 4.5;
+  lg.gain.value = freq * (kind === 'bird' && !sameTimbre ? 0.025 : 0.012);
+  lfo.connect(lg); lg.connect(osc.frequency);
+  osc.connect(lp); lp.connect(g); g.connect(master);
+  env(g, t0, kind === 'bear' && !sameTimbre ? 0.22 : 0.2, dur, 0.06, 0.25);
+  osc.start(t0); lfo.start(t0); osc.stop(t0 + dur + 0.05); lfo.stop(t0 + dur + 0.05);
+}
+function chime() { // удача: два тихих колокольчика вверх
+  if (!soundOn || !actx) return;
+  [523.25, 659.25].forEach((f, i) => {
+    const t0 = actx.currentTime + 0.03 + i * 0.14;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(master);
+    env(g, t0, 0.12, 0.45, 0.01, 0.35); o.start(t0); o.stop(t0 + 0.5);
+  });
+}
+function tick() { // нейтральный деревянный щелчок (кнопки, промах) — не грустный
+  if (!soundOn || !actx) return;
+  const t0 = actx.currentTime + 0.01;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = 'triangle'; o.frequency.value = 520; o.connect(g); g.connect(master);
+  env(g, t0, 0.08, 0.07, 0.005, 0.05); o.start(t0); o.stop(t0 + 0.1);
+}
+function breathSound(inhale, ms) { // мягкий шорох вдоха/выдоха
+  if (!soundOn || !actx) return;
+  const t0 = actx.currentTime + 0.02, dur = ms / 1000;
+  const len = Math.floor(actx.sampleRate * dur), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src = actx.createBufferSource(); src.buffer = buf;
+  const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.7;
+  bp.frequency.setValueAtTime(inhale ? 500 : 900, t0);
+  bp.frequency.linearRampToValueAtTime(inhale ? 900 : 450, t0 + dur);
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.035, t0 + dur * 0.4);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(bp); bp.connect(g); g.connect(master); src.start(t0); src.stop(t0 + dur);
+}
+
+// ============================================================
+//  Экраны
+// ============================================================
+let screenNow = 'scrSplash';
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  $(id).classList.add('on'); screenNow = id;
+}
+const ease = x => 0.5 - 0.5 * Math.cos(Math.PI * x);
+
+// Одна функция двигает всё, что дышит: круг и картинку героев вместе
+function setBreath(v) { // v: 0 (выдох) .. 1 (вдох)
+  const s = 0.72 + 0.28 * v;
+  $('breathCircle').style.transform = 'scale(' + s + ')';
+  $('breathPic').style.transform = 'scale(' + (0.9 + 0.12 * v) + ')';
+}
+async function breathe(cycles) {
+  show('scrBreath'); setBreath(0);
+  const B = DATA.breath;
+  for (let c = 0; c < cycles; c++) {
+    for (const inhale of [true, false]) {
+      const ms = inhale ? B.inhaleMs : B.exhaleMs, start = clock.t;
+      $('breathWord').textContent = inhale ? T().breathIn : T().breathOut;
+      breathSound(inhale, ms);
+      const hook = t => { const x = Math.min(1, (t - start) / ms); setBreath(inhale ? ease(x) : 1 - ease(x)); };
+      frameHooks.push(hook);
+      await wait(ms);
+      frameHooks = frameHooks.filter(h => h !== hook);
+    }
+  }
+  $('breathWord').textContent = '';
+}
+
+// ============================================================
+//  Состояние игры
+// ============================================================
+let S;
+function freshState() {
+  return {
+    level: 0, support: false, streak: 0, errStreak: 0,
+    done: 0, extra: 0,
+    firstTry: 0, earlyTaps: 0, reactions: [], levelMax: 0,
+    burst: null, offers: 0, failedBursts: 0, trailChosen: [],
+  };
+}
+const rnd = a => a[Math.floor(Math.random() * a.length)];
+
+// ============================================================
+//  Знакомство с голосами (II блок)
+// ============================================================
+async function learn() {
+  show('scrLearn');
+  $('learnPhrase').textContent = T().learn;
+  $('btnLearnGo').style.visibility = 'hidden';
+  const L = DATA.levels[0]; const heard = { learnBird: 0, learnBear: 0 };
+  while (heard.learnBird < DATA.learnTapsNeeded || heard.learnBear < DATA.learnTapsNeeded) {
+    const id = await waitTap(['learnBird', 'learnBear']);
+    const bird = id === 'learnBird';
+    setImg($(id), bird ? 'bird_pi_sing' : 'bear_bu_growl'); $(id).classList.add('glow');
+    voice(bird ? 'bird' : 'bear', bird ? L.hi[0] : L.lo[0], DATA.supportToneMs, false);
+    await wait(DATA.supportToneMs + 200);
+    setImg($(id), bird ? 'bird_pi' : 'bear_bu'); $(id).classList.remove('glow');
+    heard[id]++;
+  }
+  $('btnLearnGo').style.visibility = 'visible';
+  await waitTap(['btnLearnGo']);
+}
+
+// ============================================================
+//  Загадка (II + III блок): звук → ждём → ответ
+// ============================================================
+function tilesSleep(sleep) {
+  setImg($('tileBird'), sleep ? 'bird_pi_sleep' : 'bird_pi');
+  setImg($('tileBear'), sleep ? 'bear_bu_sleep' : 'bear_bu');
+  ['tileBird', 'tileBear'].forEach(id => $(id).style.opacity = sleep ? '0.55' : '1');
+}
+let listening = false;
+function earPulse(on) {
+  const ear = $('ear');
+  if (!on) { frameHooks = frameHooks.filter(h => h !== earPulse.hook); ear.style.transform = ''; return; }
+  const t0 = clock.t;
+  earPulse.hook = t => { ear.style.transform = 'scale(' + (1 + 0.06 * Math.sin((t - t0) / 180)) + ')'; };
+  frameHooks.push(earPulse.hook);
+}
+async function fillWait(ms) { // полоска «слушаем до конца» — плавно через rAF
+  const start = clock.t, fill = $('waitFill');
+  const hook = t => { fill.style.width = Math.min(100, (t - start) / ms * 100) + '%'; };
+  frameHooks.push(hook); await wait(ms);
+  frameHooks = frameHooks.filter(h => h !== hook); fill.style.width = '100%';
+}
+
+// Одна загадка. Возвращает true, если в итоге отгадано (с 1-й или 2-й попытки).
+async function riddle(levelIdx, support) {
+  const L = DATA.levels[levelIdx];
+  const isHigh = Math.random() < 0.5;
+  const freq = isHigh ? rnd(L.hi) : rnd(L.lo);
+  const toneMs = support ? DATA.supportToneMs : DATA.toneMs;
+  let attempts = 0;
+  show('scrPlay');
+  while (true) {
+    // слушаем
+    listening = true; tilesSleep(true); $('waitFill').style.width = '0';
+    $('playPhrase').textContent = attempts ? T().again : T().listen;
+    earPulse(true);
+    await wait(500);
+    if (support) { // опора: сначала оба голоса-образца
+      for (const b of [true, false]) {
+        const id = b ? 'tileBird' : 'tileBear';
+        $(id).style.opacity = '1'; $(id).classList.add('glow');
+        voice(b ? 'bird' : 'bear', b ? L.hi[0] : L.lo[0], DATA.supportToneMs, L.sameTimbre);
+        await wait(DATA.supportToneMs + 250);
+        $(id).classList.remove('glow'); $(id).style.opacity = '0.55';
+      }
+      await wait(400);
+    }
+    voice(isHigh ? 'bird' : 'bear', freq, toneMs, L.sameTimbre);
+    await fillWait(toneMs + L.waitMs);   // держим паузу: торможение
+    earPulse(false); listening = false; tilesSleep(false);
+    $('playPhrase').textContent = T().answer;
+    const t0 = clock.t;
+    const id = await waitTap(['tileBird', 'tileBear']);
+    const saidHigh = id === 'tileBird';
+    S.reactions.push(clock.t - t0);
+    if (saidHigh === isHigh) {
+      setImg($(id), isHigh ? 'bird_pi_sing' : 'bear_bu_growl'); $(id).classList.add('glow');
+      chime(); await wait(1200); $(id).classList.remove('glow');
+      if (attempts === 0) S.firstTry++;
+      return { ok: attempts === 0 };
+    }
+    tick(); attempts++;
+    if (attempts >= 2) { // не застреваем: показываем, кто пел, и идём дальше
+      const rid = isHigh ? 'tileBird' : 'tileBear';
+      setImg($(rid), isHigh ? 'bird_pi_sing' : 'bear_bu_growl'); $(rid).classList.add('glow');
+      voice(isHigh ? 'bird' : 'bear', freq, DATA.supportToneMs, L.sameTimbre);
+      await wait(DATA.supportToneMs + 500); $(rid).classList.remove('glow');
+      return { ok: false };
+    }
+    await wait(600);
+  }
+}
+
+// ============================================================
+//  Автоподстройка + тропа вызова
+// ============================================================
+function afterAnswer(ok) {
+  const C = DATA.challenge, top = DATA.levels.length - 1;
+  if (S.burst) { // заход по горной тропе
+    S.burst.left--;
+    if (ok) S.burst.miss = 0; else S.burst.miss++;
+    if (S.burst.miss >= C.fallbackMisses) { S.failedBursts++; S.burst = null; S.streak = 0; return; } // тихий возврат
+    if (S.burst.left <= 0) { if (DATA.liftLevel) S.level = Math.min(top, S.level + 1); S.burst = null; S.streak = 0; }
+    return;
+  }
+  if (ok) {
+    S.streak++; S.errStreak = 0;
+    if (S.streak >= DATA.scaffold.correctForLift) {
+      if (S.support) { S.support = false; }
+      else if (DATA.liftLevel) { S.level = Math.min(top, S.level + 1); }
+    }
+  } else {
+    S.errStreak++; S.streak = 0;
+    if (S.errStreak >= DATA.scaffold.errorsForSupport) S.support = true;
+  }
+  S.levelMax = Math.max(S.levelMax, S.level);
+}
+function shouldOffer() {
+  const C = DATA.challenge;
+  if (!C.enabled || DATA.mode === 'auto' || S.burst) return false;
+  if (S.offers >= C.maxOffersPerSession || S.failedBursts >= C.stopAfterFailedBursts) return false;
+  if (DATA.rounds - S.done <= C.noOfferInLast + C.burstLength[0]) return false;
+  if (S.streak < C.offerAfterCorrect || S.support) return false;
+  if (S.level >= DATA.levels.length - 1) return false;
+  // признак усталости: последние реакции заметно медленнее первых
+  const r = S.reactions; if (r.length >= 6) {
+    const a = r.slice(0, 3).reduce((x, y) => x + y) / 3, b = r.slice(-3).reduce((x, y) => x + y) / 3;
+    if (b > a * 1.8) return false;
+  }
+  return true;
+}
+async function invite() {
+  S.offers++; S.streak = 0;
+  show('scrInvite');
+  $('togetherHint').textContent = DATA.mode === 'together' ? 'Взрослый: выберите тропу вместе с ребёнком.' : '';
+  const id = await waitTap(['trailSame', 'trailMountain']);
+  $(id).style.borderColor = '#e9a15f'; chime(); await wait(900); $(id).style.borderColor = '';
+  if (id === 'trailMountain') {
+    const [a, b] = DATA.challenge.burstLength;
+    S.burst = { left: a + Math.floor(Math.random() * (b - a + 1)), miss: 0 };
+    S.trailChosen.push('mountain');
+  } else S.trailChosen.push('same');
+}
+
+// ============================================================
+//  Главный маршрут: вход → знакомство → загадки → финал
+// ============================================================
+let runId = 0;
+async function run() {
+  const my = ++runId; S = freshState();
+  const alive = () => my === runId;
+  await breathe(DATA.breath.cyclesStart); if (!alive()) return;
+  await learn(); if (!alive()) return;
+  let lastOk = false;
+  while (S.done < DATA.rounds || (!lastOk && S.extra < 2)) {
+    if (S.done >= DATA.rounds) S.extra++;
+    const lvl = S.burst ? Math.min(DATA.levels.length - 1, S.level + DATA.challenge.stepUp)
+              : (S.done >= DATA.rounds ? 0 : S.level); // добавочная загадка — самая лёгкая: финал на удаче
+    const sup = S.burst ? false : (S.done >= DATA.rounds ? true : S.support);
+    const r = await riddle(lvl, sup); if (!alive()) return;
+    lastOk = r.ok; S.done++;
+    afterAnswer(r.ok);
+    if (shouldOffer()) { await invite(); if (!alive()) return; }
+  }
+  await finish();
+}
+async function finish() {
+  show('scrFinish');
+  const chosen = S.trailChosen.length ? (S.trailChosen.includes('mountain') ? 'trail_mountain' : 'trail_same') : null;
+  const badge = $('finishBadge');
+  if (chosen) { badge.style.display = ''; setImg(badge, chosen); } else badge.style.display = 'none';
+  $('finishPhrase').textContent = T().finish;
+  $('btnAgain').style.visibility = 'hidden';
+  chime(); await wait(3500);
+  if (chosen) { $('finishPhrase').textContent = T().bridge; await wait(3000); }
+  const my = runId;
+  await breathe(DATA.breath.cyclesEnd); if (my !== runId) return;
+  show('scrFinish'); $('finishPhrase').textContent = T().bye;
+  $('btnAgain').style.visibility = 'visible';
+  S.sessions = (S.sessions || 0) + 1;
+  updateAdult();
+  await waitTap(['btnAgain']);
+  restart();
+}
+
+// ============================================================
+//  Пауза, рестарт, выход, окно взрослого
+// ============================================================
+function setPaused(p) {
+  clock.paused = p;
+  if (actx) { if (p) actx.suspend(); else actx.resume(); }
+}
+function restart() {
+  waiters = []; frameHooks = []; tapWaiter = null; listening = false;
+  $('ovPause').classList.remove('on'); setPaused(false);
+  run();
+}
+function exitToSplash() {
+  runId++; waiters = []; frameHooks = []; tapWaiter = null;
+  $('ovPause').classList.remove('on'); setPaused(false);
+  show('scrSplash');
+}
+function updateAdult() {
+  if (!S) { $('adultObs').textContent = 'Игра ещё не началась.'; return; }
+  const avg = S.reactions.length ? (S.reactions.reduce((a, b) => a + b) / S.reactions.length / 1000).toFixed(1) : '—';
+  $('adultObs').textContent =
+    'Загадок: ' + S.done + '. Отгадано сразу: ' + S.firstTry +
+    '. Нажатий раньше конца звука: ' + S.earlyTaps +
+    ' (чем меньше, тем лучше держит паузу). Средняя пауза до ответа: ' + avg + ' с. Шаг трудности: ' + (S.levelMax + 1) + ' из ' + DATA.levels.length +
+    (S.support ? '. Сейчас с опорой (образцы голосов перед загадкой).' : '.');
+  const m = S.trailChosen.includes('mountain'), s = S.trailChosen.includes('same');
+  $('adultTrailNote').textContent = m ? 'Выбирал горную тропу — спросите, почему.'
+    : s ? 'Оставался на своей тропе — спросите, почему. Можно в следующий раз попробовать горную вместе.' : '';
+  document.querySelectorAll('[data-age]').forEach(b => b.classList.toggle('sel', b.dataset.age === DATA.age));
+  document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('sel', b.dataset.mode === DATA.mode));
+  document.querySelectorAll('[data-lift]').forEach(b => b.classList.toggle('sel', (b.dataset.lift === 'on') === DATA.liftLevel));
+  document.querySelectorAll('[data-sound]').forEach(b => b.classList.toggle('sel', (b.dataset.sound === 'on') === soundOn));
+}
+
+// ============================================================
+//  События (pointerdown)
+// ============================================================
+function tapHandler(id, fn) { $(id).addEventListener('pointerdown', e => { e.preventDefault(); audioInit(); fn(e); }); }
+tapHandler('btnStart', () => { tick(); restart(); });
+['learnBird', 'learnBear', 'btnLearnGo', 'trailSame', 'trailMountain', 'btnAgain'].forEach(id =>
+  tapHandler(id, () => { onTap(id); }));
+['tileBird', 'tileBear'].forEach(id => tapHandler(id, () => {
+  if (clock.paused) return;
+  if (listening) { // рано: герои спят, ничего не происходит, ушко тихонько качнётся
+    S.earlyTaps++;
+    const ear = $('ear'); ear.style.opacity = '0.6'; wait(250).then(() => ear.style.opacity = '1');
+    return;
+  }
+  onTap(id);
+}));
+tapHandler('btnPause', () => { tick(); setPaused(true); $('ovPause').classList.add('on'); });
+tapHandler('btnResume', () => { $('ovPause').classList.remove('on'); setPaused(false); });
+tapHandler('btnRestart', () => restart());
+tapHandler('btnExit', () => exitToSplash());
+tapHandler('btnAdult', () => { setPaused(true); updateAdult(); $('ovAdult').classList.add('on'); });
+tapHandler('btnAdultClose', () => { $('ovAdult').classList.remove('on'); if (!$('ovPause').classList.contains('on')) setPaused(false); });
+document.querySelectorAll('#adultsSheet .opt').forEach(b => b.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if (b.dataset.age) DATA.age = b.dataset.age;
+  if (b.dataset.mode) DATA.mode = b.dataset.mode;
+  if (b.dataset.lift) DATA.liftLevel = b.dataset.lift === 'on';
+  if (b.dataset.sound) soundOn = b.dataset.sound === 'on';
+  updateAdult();
+}));
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && screenNow !== 'scrSplash') { setPaused(true); $('ovPause').classList.add('on'); }
+});
+document.addEventListener('pointerdown', audioInit, { once: true });
+</script>
+</body>
+</html>
