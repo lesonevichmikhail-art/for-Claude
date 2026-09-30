@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Найди пару — Дядя Миша</title>
+<!--
+  «Найди пару» v2.0 (переработка NG-1.3.4 от 2026-09-01). Слой junior, 5–8 лет.
+  Маршрут Лурии: intro → breath (I блок) → learn (II блок: показ и запоминание)
+  → play (III блок: поиск пар, контроль) → finish (IV блок: спокойный выход) → bridge (ко взрослому).
+  Контент, картинки, голос и числа — в CONFIG / ASSETS / VOICE ниже. Логика — отдельно.
+  Эффект не замерен. Пороги подстройки — гипотезы, на детях не проверены.
+-->
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#f6ecd9; --card:#fffaf0; --ink:#4a3526; --soft:#8a6d55;
+    --terra:#c8643b; --ochre:#e0a43a; --olive:#7d8b4a; --cream:#fff4de;
+    --glow:#f2c14e; --ph:#cfc8bd; --phText:#5b534a;
+  }
+  html,body{height:100%;overflow:hidden}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:max(18px,2.2vmin);
+    height:100dvh; width:100vw; position:relative; user-select:none; touch-action:manipulation;
+  }
+  button{font:inherit;color:inherit;border:none;background:none;cursor:pointer}
+
+  /* ---- Верхняя полоса ---- */
+  .top{position:absolute;top:0;left:0;right:0;height:72px;display:flex;align-items:center;
+       justify-content:space-between;padding:4px 10px;z-index:20;pointer-events:none}
+  .top > *{pointer-events:auto}
+  .sign{font-size:16px;color:var(--soft);font-weight:600;letter-spacing:.3px}
+  .iconBtn{width:64px;height:64px;border-radius:50%;background:var(--card);
+           box-shadow:0 3px 0 rgba(74,53,38,.18);display:flex;align-items:center;justify-content:center}
+  .iconBtn .ph{width:44px;height:44px;font-size:9px;border-radius:50%}
+  .adultBtn{width:44px;height:44px;border-radius:50%;background:var(--cream);color:var(--soft);
+            font-weight:700;font-size:18px;border:2px solid var(--soft);margin:10px}
+  .hidden{display:none!important}
+
+  /* ---- Экраны ---- */
+  .screen{position:absolute;inset:72px 0 0 0;display:none;flex-direction:column;align-items:center;
+          justify-content:center;gap:2vmin;padding:0 16px 12px}
+  .screen.on{display:flex}
+
+  /* Заглушка картинки: серый прямоугольник с именем файла */
+  .ph{background:var(--ph);color:var(--phText);display:flex;align-items:center;justify-content:center;
+      text-align:center;font-size:11px;line-height:1.15;border-radius:14px;padding:4px;
+      word-break:break-all;overflow:hidden}
+  .pic{display:block;object-fit:contain}
+
+  .hero{width:min(34vmin,260px);height:min(34vmin,260px)}
+  .heroSm{width:min(16vmin,110px);height:min(16vmin,110px);flex:none}
+
+  .bigBtn{min-width:200px;min-height:80px;padding:0 36px;border-radius:40px;background:var(--terra);
+          color:#fff;font-size:28px;font-weight:700;box-shadow:0 5px 0 #9c4a2a}
+  .bigBtn:active{transform:translateY(3px);box-shadow:0 2px 0 #9c4a2a}
+  .title{font-size:max(28px,5vmin);font-weight:800;text-align:center}
+
+  /* Полоса чернового голоса (пока нет mp3) */
+  .voiceStrip{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);max-width:92vw;
+              background:#e3dccf;color:#5b534a;border-radius:12px;padding:8px 14px;font-size:16px;
+              z-index:30;pointer-events:none;opacity:0}
+
+  /* ---- Дыхание ---- */
+  .breathWrap{position:relative;width:min(60vmin,420px);height:min(60vmin,420px);display:flex;
+              align-items:center;justify-content:center}
+  .breathCircle{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,#f3d49a 0%,#e9b870 70%,#e0a43a 100%);opacity:.55}
+  .breathHero{position:relative;width:55%;height:55%}
+
+  /* ---- Игра ---- */
+  .playHead{display:flex;align-items:center;gap:12px;width:100%;max-width:900px;justify-content:center;flex:none}
+  .board{position:relative;flex:1;width:100%;display:flex;align-items:center;justify-content:center;min-height:0}
+  .grid{display:grid}
+  .card{position:relative;border-radius:16px;background:var(--card);
+        box-shadow:0 4px 0 rgba(74,53,38,.18);display:flex;align-items:center;justify-content:center;
+        padding:6%;will-change:transform}
+  .card.back{background:var(--ochre)}
+  .card.done{background:#f3f0e4;box-shadow:none}
+  .card.glow{outline:6px solid var(--glow);outline-offset:2px}
+  .card .inner{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4%}
+  .card .inner .ph,.card .inner .pic{width:100%;flex:1;min-height:0}
+  .cap{font-size:max(16px,min(4.2vmin,26px));font-weight:700;line-height:1.1;text-align:center}
+  .word{font-size:max(20px,min(6vmin,40px));font-weight:800;text-align:center;letter-spacing:1px}
+
+  /* Выбор тропы */
+  .choice{display:flex;gap:6vmin;flex-wrap:wrap;justify-content:center}
+  .choiceBtn{width:min(36vmin,240px);height:min(36vmin,240px);border-radius:24px;background:var(--card);
+             box-shadow:0 5px 0 rgba(74,53,38,.18);padding:10px}
+  .choiceBtn .ph,.choiceBtn .pic{width:100%;height:100%}
+  .together{font-size:18px;color:var(--soft);text-align:center}
+
+  /* Мостик */
+  .bridgeRow{display:flex;gap:4vmin;align-items:center;justify-content:center;flex-wrap:wrap}
+  .mission{width:min(40vmin,260px);height:min(40vmin,260px)}
+  .smallRow{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .softBtn{min-width:80px;min-height:80px;padding:8px 16px;justify-content:center;border-radius:32px;background:var(--card);
+           box-shadow:0 4px 0 rgba(74,53,38,.18);font-weight:700;font-size:20px;display:flex;align-items:center;gap:10px}
+  .softBtn .ph{width:40px;height:40px;font-size:8px}
+  .tropaBadge{width:min(18vmin,110px);height:min(18vmin,110px)}
+
+  /* ---- Пауза и окно взрослого ---- */
+  .overlay{position:absolute;inset:0;background:rgba(74,53,38,.45);display:none;align-items:center;
+           justify-content:center;z-index:50;padding:16px}
+  .overlay.on{display:flex}
+  .pauseBox{background:var(--bg);border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:16px;align-items:center}
+  .sheet{background:var(--bg);border-radius:20px;width:min(640px,100%);max-height:100%;overflow-y:auto;overflow-x:hidden;
+         padding:20px 18px;font-size:17px;line-height:1.45}
+  .sheet h2{font-size:21px;margin:14px 0 6px}
+  .sheet h2:first-child{margin-top:0}
+  .sheet ul{padding-left:20px}
+  .sheet .three{background:var(--cream);border-radius:14px;padding:10px 14px}
+  .set{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0}
+  .set b{min-width:150px}
+  .opt{min-height:48px;padding:0 14px;border-radius:24px;background:var(--card);border:2px solid transparent;font-size:16px}
+  .opt.sel{border-color:var(--olive);background:#eef0dc}
+  .log{font-size:15px;color:var(--soft)}
+  .closeBtn{width:100%;min-height:64px;border-radius:32px;background:var(--olive);color:#fff;font-weight:700;margin-top:14px}
+  .sheetSign{text-align:right;color:var(--soft);margin-top:10px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div id="leftSlot"><span class="sign" id="sign">Дядя Миша</span>
+    <button class="iconBtn hidden" id="pauseBtn" aria-label="Пауза"></button></div>
+  <div style="display:flex;align-items:center">
+    <button class="iconBtn hidden" id="earBtn" aria-label="Повторить"></button>
+    <button class="adultBtn" id="adultBtn" aria-label="Для взрослого">i</button>
+  </div>
+</div>
+
+<!-- intro · вход -->
+<section class="screen on" id="scIntro" data-luria="I блок: вход">
+  <div id="introHero" class="hero"></div>
+  <div class="title">Найди пару</div>
+  <button class="bigBtn" id="playBtn">Играть</button>
+</section>
+
+<!-- breath · I блок: тонус и спокойствие -->
+<section class="screen" id="scBreath" data-luria="I блок: дыхание">
+  <div class="breathWrap"><div class="breathCircle" id="breathCircle"></div><div class="breathHero" id="breathHero"></div></div>
+</section>
+
+<!-- offer · выбор тропы (поверх автоподстройки) -->
+<section class="screen" id="scOffer" data-luria="III блок: выбор, программирование">
+  <div id="offerHero" class="heroSm"></div>
+  <div class="choice">
+    <button class="choiceBtn" id="tropaSame"></button>
+    <button class="choiceBtn" id="tropaMount"></button>
+  </div>
+  <div class="together hidden" id="togetherNote">Выберите тропу вместе с ребёнком</div>
+</section>
+
+<!-- learn + play · II блок (показ, запоминание) и III блок (поиск, контроль) -->
+<section class="screen" id="scPlay" data-luria="II блок: запоминание · III блок: контроль">
+  <div class="playHead"><div id="playHero" class="heroSm"></div></div>
+  <div class="board" id="board"><div class="grid" id="grid"></div></div>
+</section>
+
+<!-- finish · IV блок: спокойное завершение -->
+<section class="screen" id="scFinish" data-luria="IV блок: завершение">
+  <div class="breathWrap"><div class="breathCircle" id="finCircle"></div><div class="breathHero" id="finHero"></div></div>
+</section>
+
+<!-- bridge · мостик ко взрослому -->
+<section class="screen" id="scBridge" data-luria="Мостик ко взрослому">
+  <div class="bridgeRow">
+    <div id="bridgeHero" class="hero"></div>
+    <div id="bridgeMission" class="mission"></div>
+    <div id="bridgeTropa" class="tropaBadge hidden"></div>
+  </div>
+  <div class="smallRow">
+    <button class="softBtn" id="againBtn" aria-label="Ещё раз"><span id="againIco"></span></button>
+    <button class="softBtn" id="homeBtn" aria-label="Домой"><span id="homeIco"></span></button>
+  </div>
+</section>
+
+<!-- пауза -->
+<div class="overlay" id="pauseOv">
+  <div class="pauseBox">
+    <div id="pauseHero" class="heroSm"></div>
+    <button class="bigBtn" id="resumeBtn" aria-label="Дальше" style="padding:8px 24px"><span id="resumeIco" style="width:64px;height:64px;display:inline-block"></span></button>
+    <div class="smallRow">
+      <button class="softBtn" id="restartBtn" aria-label="Заново"><span id="restartIco"></span></button>
+      <button class="softBtn" id="exitBtn" aria-label="Домой"><span id="exitIco"></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- окно взрослого -->
+<div class="overlay" id="adultOv">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<div class="voiceStrip" id="voiceStrip"></div>
+
+<script>
+/* =====================================================================
+   CONFIG — контент и числа. Менять здесь, логику не трогать.
+   ===================================================================== */
+const CONFIG = {
+  version: '2.0',
+  breathCycles: 3,            // вход: 3 цикла (файл 00). Открытый вопрос в памяти проекта: 2 или 3
+  breathFinishCycles: 1,
+  inhaleMs: 3000, exhaleMs: 4000,
+  roundsPerSession: 5,        // сколько досок за занятие (взрослый меняет 3/5/7)
+  flipBackMs: 1100,           // сколько открытая «не пара» видна перед тем, как закрыться
+  // Уровни: пары на доске и время показа «посмотри и запомни» (II блок)
+  levels: [
+    { pairs: 2, previewMs: 4000 },
+    { pairs: 3, previewMs: 4500 },
+    { pairs: 4, previewMs: 5000 },
+    { pairs: 5, previewMs: 5500 },
+    { pairs: 6, previewMs: 6000 }   // потолок: 12 карточек
+  ],
+  // Подстройка (по умолчанию из общих правил). «Ошибка» = ошибка памяти:
+  // открыл карточку, пара к которой уже была открыта раньше, и не нашёл её.
+  // Случайный первый промах вслепую ошибкой не считается.
+  adapt: {
+    missesForSupport: 2,        // 2 ошибки подряд → опора (пара светится, показ дольше)
+    correctToDrop: 3,           // 3 верных подряд → опора уходит, потом уровень +1
+    missesForLevelDown: 2,      // ещё 2 ошибки подряд уже с опорой → следующая доска на уровень ниже
+    supportExtraPreviewMs: 2000
+  },
+  // Тропа вызова поверх автоподстройки (skills-backup/tropa-vyzova-poverh-skaffoldinga)
+  challenge: {
+    enabled: true,
+    offerAfterCorrect: 3,
+    stepUp: 1,
+    burstLength: [4, 8],        // заход = одна доска (4–12 карточек)
+    maxOffersPerSession: 2,
+    stopAfterFailedBursts: 2,
+    fallbackMisses: 2,
+    noOfferInLast: 1            // в последней доске не предлагать: финал на удаче
+  },
+  // Картинки. word — подпись (показывается, если взрослый включил «Ребёнок читает»).
+  // Простые слова: 1–2 слога, открытые слоги где можно.
+  items: [
+    { id:'kot',    file:'predmet_kot.png',    word:'кот'    },
+    { id:'dom',    file:'predmet_dom.png',    word:'дом'    },
+    { id:'myach',  file:'predmet_myach.png',  word:'мяч'    },
+    { id:'ryba',   file:'predmet_ryba.png',   word:'рыба'   },
+    { id:'luna',   file:'predmet_luna.png',   word:'луна'   },
+    { id:'sova',   file:'predmet_sova.png',   word:'сова'   },
+    { id:'lodka',  file:'predmet_lodka.png',  word:'лодка'  },
+    { id:'grib',   file:'predmet_grib.png',   word:'гриб'   },
+    { id:'shapka', file:'predmet_shapka.png', word:'шапка'  },
+    { id:'yabloko',file:'predmet_yabloko.png',word:'яблоко' },
+    { id:'banan',  file:'predmet_banan.png',  word:'банан'  },
+    { id:'zont',   file:'predmet_zont.png',   word:'зонт'   }
+  ],
+  hero: {
+    hello:  'geroy_slonenok_topa_privet.png',
+    think:  'geroy_slonenok_topa_smotrit.png',
+    happy:  'geroy_slonenok_topa_raduetsya.png',
+    calm:   'geroy_slonenok_topa_dyshit.png',
+    bye:    'geroy_slonenok_topa_mashet.png'
+  },
+  icons: {
+    cardBack: 'ikonka_rubashka_karty.png',
+    pause:    'ikonka_pauza.png',
+    ear:      'ikonka_uho.png',
+    again:    'ikonka_esche_raz.png',
+    home:     'ikonka_domoy.png',
+    resume:   'ikonka_dalshe.png',
+    tropaSame:'ikonka_tropa_rovnaya.png',
+    tropaMount:'ikonka_tropa_gornaya.png',
+    mission:  'predmet_dva_noska.png'
+  },
+  bridge: {
+    mission: 'Найдите дома две одинаковые вещи: два носка или две ложки.',
+    threeLines: [
+      'Сегодня ребёнок запоминал, где лежат картинки, и искал пары.',
+      'Вечером: разложите вместе носки по парам, скажите «пара!» на каждую.',
+      'Не подсказывайте сразу. Подождите 5 секунд, пусть поищет сам.'
+    ]
+  }
+};
+
+/* Картинки base64: имя файла → 'data:image/png;base64,...'. Пусто → серая заглушка. */
+const ASSETS = {};
+
+/* Голос: записи Михаила mp3 base64. Нет записи → черновой режим («дзынь» + серая полоса). */
+const VOICE = {
+  hello:   { file:'04_nachalo_1.mp3', text:'Привет! Я слонёнок Топа. Поищем пары?' },
+  breath:  { file:'04_nachalo_2.mp3', text:'Подыши со мной. Вдох… и выдох.' },
+  learn:   { file:'04_igra_1.mp3',    text:'Посмотри и запомни.' },
+  play:    { file:'04_igra_2.mp3',    text:'Найди две одинаковые.' },
+  playWord:{ file:'04_igra_3.mp3',    text:'Найди картинку и слово к ней.' },
+  pair:    { file:'04_igra_4.mp3',    text:'Пара!' },
+  notPair: { file:'04_igra_5.mp3',    text:'Не пара. Ищем дальше.' },
+  glow:    { file:'04_igra_6.mp3',    text:'Посмотри, где светится.' },
+  offer:   { file:'04_tropa_1.mp3',   text:'Какую тропу выберешь?' },
+  mount:   { file:'04_tropa_2.mp3',   text:'Горная тропа! Смотри внимательно.' },
+  same:    { file:'04_tropa_3.mp3',   text:'Идём по нашей тропе.' },
+  finish:  { file:'04_konec_1.mp3',   text:'Все пары нашлись. Подышим спокойно.' },
+  bridge:  { file:'04_most_1.mp3',    text:'Отнеси телефон маме, папе или бабушке. Покажи, что получилось.' },
+  mission: { file:'04_most_2.mp3',    text:'Найдите дома две одинаковые вещи: два носка или две ложки.' },
+  tropa:   { file:'04_most_3.mp3',    text:'Покажи маме, какую тропу ты выбрал.' },
+  backup:  { file:'04_most_4.mp3',    text:'Если все заняты — покажи игрушке. А взрослым — вечером.' }
+};
+const VOICE_B64 = {};   // имя mp3 → 'data:audio/mpeg;base64,...'
+
+/* ================= ЗВУК (ядро zvuk-igr-dyadya-misha, без изменений) ================= */
+const A = {
+  ctx:null, on:true,
+  ensure(){
+    if(!this.ctx){ try{ this.ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(this.ctx && this.ctx.state==='suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  tone(f,dur,vol,type,slideTo){
+    if(!this.on) return;
+    const c=this.ensure(); if(!c) return;
+    const t=c.currentTime, o=c.createOscillator(), g=c.createGain();
+    o.type=type||'sine';
+    o.frequency.setValueAtTime(f,t);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo,t+dur*0.8);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+dur*0.18);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+0.05);
+  },
+  tap(){     this.tone(660,0.13,0.16,'sine',880); },
+  squeeze(){ this.tone(196,0.55,0.15,'sine'); },
+  release(){ this.tone(392,0.75,0.15,'sine',587); },
+  right(){   this.tone(523,0.35,0.15,'sine',784); },
+  hint(){    this.tone(440,0.40,0.12,'sine',392); },
+  inhale(){  this.tone(330,0.45,0.09,'sine',440); },
+  exhale(){  this.tone(392,0.70,0.09,'sine',262); },
+  done(){ [262,330,392,523].forEach((f,i)=>setTimeout(()=>this.tone(f,0.9,0.14),i*120)); }
+};
+/* Разная высота нот для открытия карточек — закладка слуха (пентатоника) */
+const FLIP_NOTES=[392,440,523,587,659,784];
+
+/* ================= ХРАНИЛИЩЕ (всё в try-catch) ================= */
+const store={
+  get(k,d){ try{ const v=localStorage.getItem('najdiParu.'+k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem('najdiParu.'+k,JSON.stringify(v)); }catch(e){} }
+};
+
+/* ================= СОСТОЯНИЕ ================= */
+const settings = Object.assign({
+  reads:false,          // ребёнок читает → подписи, а на горной тропе пары «картинка + слово»
+  mode:'auto',          // auto | easy | together
+  offers:'on',          // тропа вызова: on | off | with (выбираем вместе)
+  startLevel:'auto',    // auto | 0..4
+  rounds:CONFIG.roundsPerSession
+}, store.get('settings',{}));
+A.on = store.get('sound',true);
+
+const S = {
+  screen:'intro', paused:false,
+  round:0, level:0, support:false,
+  correctStreak:0, missStreak:0, supportMissStreak:0,
+  offersMade:0, failedBursts:0, inBurst:false, burstFallback:false, tropaChosen:null,
+  hadStreakThisRound:false, levelDownNext:false, hardRound:false,
+  board:[], open:[], lock:false, seen:new Set(), moves:0,
+  log:[], lastVoice:null
+};
+
+/* ================= ТАЙМЕРЫ С ПАУЗОЙ ================= */
+const T={
+  list:[],
+  later(fn,ms){ const t={fn,left:ms,start:performance.now(),id:null}; t.id=setTimeout(()=>this.fire(t),ms); this.list.push(t); return t; },
+  fire(t){ this.list=this.list.filter(x=>x!==t); t.fn(); },
+  pause(){ const now=performance.now(); this.list.forEach(t=>{clearTimeout(t.id); t.left-=now-t.start;}); },
+  resume(){ this.list.forEach(t=>{ t.start=performance.now(); t.id=setTimeout(()=>this.fire(t),Math.max(0,t.left)); }); },
+  clear(){ this.list.forEach(t=>clearTimeout(t.id)); this.list=[]; }
+};
+
+/* ================= КАРТИНКИ ================= */
+const $=id=>document.getElementById(id);
+function picEl(file,cls){
+  if(ASSETS[file]){ const i=document.createElement('img'); i.src=ASSETS[file]; i.alt=''; i.className='pic'+(cls?' '+cls:''); i.draggable=false; return i; }
+  const d=document.createElement('div'); d.className='ph'+(cls?' '+cls:''); d.textContent='['+file+']'; return d;
+}
+function putPic(host,file){ host.innerHTML=''; const p=picEl(file); p.style.width='100%'; p.style.height='100%'; host.appendChild(p); }
+
+/* ================= ГОЛОС ================= */
+let voiceSrc=null, stripTimer=null;
+function stopVoice(){ try{ voiceSrc&&voiceSrc.stop(); }catch(e){} voiceSrc=null; $('voiceStrip').style.opacity=0; }
+function say(key){
+  const v=VOICE[key]; if(!v) return;
+  S.lastVoice=key; stopVoice();
+  if(!A.on) return;
+  const b64=VOICE_B64[v.file], c=A.ensure();
+  if(b64 && c){
+    fetch(b64).then(r=>r.arrayBuffer()).then(buf=>c.decodeAudioData(buf)).then(ab=>{
+      if(S.paused) return;
+      const s=c.createBufferSource(); s.buffer=ab; s.connect(c.destination); s.start(c.currentTime); voiceSrc=s;
+    }).catch(()=>draftVoice(v));
+  } else draftVoice(v);
+}
+function draftVoice(v){ // черновой режим: мягкий «дзынь» и серая полоса с фразой
+  A.tone(880,0.3,0.08,'sine',1175);
+  const st=$('voiceStrip'); st.textContent='голос: '+v.text; st.style.opacity=1;
+  clearTimeout(stripTimer); stripTimer=setTimeout(()=>st.style.opacity=0,2800);
+}
+
+/* ================= ЭКРАНЫ ================= */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  $(id).classList.add('on'); S.screen=id;
+  const inGame = id!=='scIntro';
+  $('sign').classList.toggle('hidden',inGame);
+  $('pauseBtn').classList.toggle('hidden',!inGame || id==='scBridge');
+  $('earBtn').classList.toggle('hidden',id==='scIntro');
+}
+
+/* ================= ДЫХАНИЕ: одна функция двигает круг и героя ================= */
+function setBreath(circle,hero,k){ // k: 0 — выдох, 1 — вдох
+  const s=0.62+0.38*k;
+  circle.style.transform='scale('+s+')';
+  hero.style.transform='scale('+(0.9+0.12*k)+')';
+}
+function breathe(circle,hero,cycles,done){
+  const cyc=CONFIG.inhaleMs+CONFIG.exhaleMs;
+  let t=0, last=performance.now(), phase=-1;
+  function frame(now){
+    if(!S.paused) t+=now-last;
+    last=now;
+    const c=Math.floor(t/cyc);
+    if(c>=cycles){ setBreath(circle,hero,0); done(); return; }
+    const p=t-c*cyc;
+    let k, ph;
+    if(p<CONFIG.inhaleMs){ k=easeInOut(p/CONFIG.inhaleMs); ph=c*2; }
+    else { k=1-easeInOut((p-CONFIG.inhaleMs)/CONFIG.exhaleMs); ph=c*2+1; }
+    if(ph!==phase && !S.paused){ phase=ph; if(ph%2) A.exhale(); else A.inhale(); }
+    setBreath(circle,hero,k);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+function easeInOut(x){ return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2; }
+
+/* ================= ПЕРЕВОРОТ КАРТОЧКИ (rAF, работает и при reduce-motion) ================= */
+function flipAnim(el,render,done){
+  const dur=240; let st=null, swapped=false;
+  function f(now){
+    if(st===null) st=now;
+    const p=Math.min(1,(now-st)/dur);
+    const sx=Math.abs(Math.cos(p*Math.PI));
+    if(p>=.5 && !swapped){ swapped=true; render(); }
+    el.style.transform='scaleX('+Math.max(.02,sx)+')';
+    if(p<1) requestAnimationFrame(f); else { el.style.transform=''; done&&done(); }
+  }
+  requestAnimationFrame(f);
+}
+
+/* ================= ПОТОК ИГРЫ ================= */
+function startSession(){
+  T.clear(); stopVoice();
+  const saved=store.get('lastLevel',null);
+  if(settings.mode==='easy') S.level=0;
+  else if(settings.mode==='together') S.level=CONFIG.levels.length-1;
+  else if(settings.startLevel!=='auto') S.level=+settings.startLevel;
+  else S.level = saved===null ? 0 : Math.max(0,saved-1); // повторная игра — на ступень легче
+  Object.assign(S,{round:0,support:settings.mode==='easy',correctStreak:0,missStreak:0,supportMissStreak:0,
+    offersMade:0,failedBursts:0,inBurst:false,tropaChosen:null,levelDownNext:false,hardRound:false,log:[]});
+  show('scBreath');
+  putPic($('breathHero'),CONFIG.hero.calm);
+  say('breath');
+  breathe($('breathCircle'),$('breathHero'),CONFIG.breathCycles,()=>nextRound());
+}
+
+function offersAllowed(){
+  const c=CONFIG.challenge;
+  return c.enabled && settings.offers!=='off' && settings.mode==='auto'
+    && S.offersMade<c.maxOffersPerSession && S.failedBursts<c.stopAfterFailedBursts
+    && S.round < settings.rounds - c.noOfferInLast
+    && S.hadStreakThisRound && !S.hardRound && !S.lastWasBurst; // между заходами — хотя бы одна обычная доска
+}
+
+function nextRound(){
+  if(S.round>=settings.rounds){ finish(); return; }
+  // Автоподстройка между досками
+  if(S.levelDownNext){ S.level=Math.max(0,S.level-1); S.levelDownNext=false; }
+  // Последняя доска после трудной — легче: финал на удаче
+  if(S.round===settings.rounds-1 && S.hardRound && settings.mode!=='together') S.level=Math.max(0,S.level-1);
+  if(S.round>0 && offersAllowed()){ offer(); return; }
+  playRound(false);
+}
+
+function offer(){
+  S.offersMade++;
+  show('scOffer');
+  putPic($('offerHero'),CONFIG.hero.think);
+  putPic($('tropaSame'),CONFIG.icons.tropaSame);
+  putPic($('tropaMount'),CONFIG.icons.tropaMount);
+  $('togetherNote').classList.toggle('hidden',settings.offers!=='with');
+  say('offer');
+}
+function chooseTropa(mount){
+  if(S.screen!=='scOffer'||S.choosing||S.paused) return; // двойное касание не запускает две доски
+  S.choosing=true; T.later(()=>S.choosing=false,900);
+  A.tap();
+  if(mount || !S.tropaChosen) S.tropaChosen = mount ? 'mount' : 'same';
+  say(mount?'mount':'same');
+  T.later(()=>playRound(mount),900);
+}
+
+function playRound(burst){
+  S.round++;
+  S.inBurst=burst; S.lastWasBurst=burst; S.burstFallback=false;
+  if(burst){ S.supportBeforeBurst=S.support; S.support=false; } // на горной тропе опоры нет, пока не сработала страховка
+  S.hadStreakThisRound=false; S.hardRound=false;
+  const maxL=CONFIG.levels.length-1;
+  const lvl = burst ? Math.min(maxL,S.level+CONFIG.challenge.stepUp) : S.level;
+  // Горная тропа для читающего: пары «картинка + слово». Для нечитающего: +1 пара, без опоры.
+  const wordMode = burst && settings.reads;
+  const L=CONFIG.levels[lvl];
+  const pool=shuffle(CONFIG.items.slice()).slice(0,L.pairs);
+  let deck=[];
+  pool.forEach(it=>{ deck.push({it,kind:'pic'}); deck.push({it,kind: wordMode?'word':'pic'}); });
+  deck=shuffle(deck).map((c,i)=>Object.assign(c,{i,up:false,done:false,el:null}));
+  S.board=deck; S.open=[]; S.lock=true; S.seen=new Set(); S.moves=0;
+  S.cur={lvl,pairs:L.pairs,wordMode,burst,supportUsed:S.support,misses:0};
+
+  show('scPlay');
+  putPic($('playHero'),CONFIG.hero.think);
+  buildGrid();
+  // II блок: показ «посмотри и запомни»
+  const noSupport = burst && !settings.reads && lvl===S.level; // на потолке горная = без опоры и короче показ
+  let preview=L.previewMs + (S.support && !burst ? CONFIG.adapt.supportExtraPreviewMs : 0);
+  if(noSupport) preview=Math.round(preview*0.7);
+  say('learn');
+  T.later(()=>{
+    deck.forEach((c,k)=>T.later(()=>{ c.up=true; flipAnim(c.el,()=>renderCard(c)); A.tone(FLIP_NOTES[k%6],0.2,0.06,'sine'); },k*70));
+  },500);
+  T.later(()=>{
+    deck.forEach(c=>{ c.up=false; flipAnim(c.el,()=>renderCard(c)); });
+    T.later(()=>{ S.lock=false; say(wordMode?'playWord':'play'); },320);
+  },500+deck.length*70+preview);
+}
+
+function buildGrid(){
+  const g=$('grid'); g.innerHTML='';
+  S.board.forEach(c=>{
+    const b=document.createElement('button'); b.className='card back'; c.el=b;
+    b.addEventListener('pointerdown',e=>{ e.preventDefault(); tapCard(c); });
+    g.appendChild(b); renderCard(c);
+  });
+  layoutGrid();
+}
+function renderCard(c){
+  const b=c.el; b.innerHTML='';
+  const inner=document.createElement('div'); inner.className='inner';
+  if(!c.up && !c.done){ b.className='card back'+(b.classList.contains('glow')?' glow':''); inner.appendChild(picEl(CONFIG.icons.cardBack)); }
+  else {
+    b.className='card'+(c.done?' done':'')+(b.classList.contains('glow')&&!c.done?' glow':'');
+    if(c.kind==='word'){ const w=document.createElement('div'); w.className='word'; w.textContent=c.it.word; inner.appendChild(w); }
+    else {
+      inner.appendChild(picEl(c.it.file));
+      if(settings.reads){ const cap=document.createElement('div'); cap.className='cap'; cap.textContent=c.it.word; inner.appendChild(cap); }
+    }
+  }
+  b.appendChild(inner);
+}
+/* Сетка вписывается в экран: подбираем число колонок под самую крупную карточку */
+function layoutGrid(){
+  const n=S.board.length; if(!n) return;
+  const box=$('board').getBoundingClientRect();
+  const W=box.width, H=box.height, gap=Math.max(8,Math.min(W,H)*0.025);
+  let best={s:0,c:1};
+  for(let c=1;c<=n;c++){
+    const r=Math.ceil(n/c);
+    const s=Math.min((W-gap*(c-1))/c,(H-gap*(r-1))/r);
+    if(s>best.s) best={s,c};
+  }
+  const s=Math.max(64,Math.min(best.s,230));
+  const g=$('grid');
+  g.style.gridTemplateColumns='repeat('+best.c+','+s+'px)';
+  g.style.gridAutoRows=s+'px'; g.style.gap=gap+'px';
+}
+addEventListener('resize',layoutGrid);
+
+function tapCard(c){
+  if(S.paused||S.lock||c.up||c.done||S.open.length>=2) return;
+  A.ensure();
+  c.up=true; S.open.push(c);
+  A.tone(FLIP_NOTES[S.open.length===1?0:2],0.2,0.1,'sine');
+  flipAnim(c.el,()=>renderCard(c));
+  if(S.open.length===1){
+    // Опора: если пара уже была видна — она мягко светится
+    const partner=S.board.find(x=>x!==c && x.it.id===c.it.id);
+    if(S.support && !partner.done && S.seen.has(partner.i)){ partner.el.classList.add('glow'); renderCard(partner); say('glow'); }
+    return;
+  }
+  S.moves++;
+  const [a,b]=S.open;
+  const partnerKnown = S.seen.has(S.board.find(x=>x!==a&&x.it.id===a.it.id).i)
+                    || S.seen.has(S.board.find(x=>x!==b&&x.it.id===b.it.id).i);
+  S.seen.add(a.i); S.seen.add(b.i);
+  S.lock=true;
+  if(a.it.id===b.it.id){
+    T.later(()=>{
+      a.done=b.done=true; clearGlow();
+      renderCard(a); renderCard(b);
+      A.right(); say('pair');
+      onCorrect();
+      S.open=[]; S.lock=false;
+      if(S.board.every(x=>x.done)) T.later(roundDone,900);
+    },300);
+  } else {
+    if(partnerKnown) onMiss();
+    A.hint();
+    T.later(()=>{
+      a.up=b.up=false; clearGlow();
+      flipAnim(a.el,()=>renderCard(a)); flipAnim(b.el,()=>renderCard(b));
+      S.open=[]; S.lock=false;
+    },CONFIG.flipBackMs);
+  }
+}
+function clearGlow(){ S.board.forEach(x=>{ if(x.el.classList.contains('glow')){ x.el.classList.remove('glow'); renderCard(x);} }); }
+
+/* ----- Автоподстройка (микро: по каждой попытке) ----- */
+function onCorrect(){
+  S.missStreak=0; S.supportMissStreak=0; S.correctStreak++;
+  if(S.correctStreak>=CONFIG.challenge.offerAfterCorrect) S.hadStreakThisRound=true;
+  if(S.correctStreak>=CONFIG.adapt.correctToDrop && settings.mode!=='easy'){
+    S.correctStreak=0;
+    if(S.support) S.support=false;                       // сначала уходит опора
+    else if(settings.mode!=='together') S.levelUpNext=true; // потом уровень +1 (на следующей доске)
+  }
+}
+function onMiss(){
+  S.correctStreak=0; S.missStreak++; S.cur.misses++;
+  if(S.inBurst){ // страховка горной тропы: тихо включаем опору
+    if(S.missStreak>=CONFIG.challenge.fallbackMisses){ S.burstFallback=true; S.support=true; S.missStreak=0; }
+    return;
+  }
+  if(!S.support && S.missStreak>=CONFIG.adapt.missesForSupport){ S.support=true; S.missStreak=0; S.hardRound=true; }
+  else if(S.support){ S.supportMissStreak++; if(S.supportMissStreak>=CONFIG.adapt.missesForLevelDown && settings.mode==='auto'){ S.levelDownNext=true; S.supportMissStreak=0; S.hardRound=true; } }
+  say('notPair');
+}
+
+function roundDone(){
+  A.done();
+  putPic($('playHero'),CONFIG.hero.happy);
+  const c=S.cur;
+  S.log.push({round:S.round,pairs:c.pairs,extra:Math.max(0,S.moves-c.pairs),misses:c.misses,
+    support:c.supportUsed||S.support,burst:c.burst,word:c.wordMode,fallback:S.burstFallback});
+  if(c.burst){
+    if(S.burstFallback) S.failedBursts++;          // неудачный заход базовый уровень не снижает
+    else S.level=Math.min(CONFIG.levels.length-1,S.level+1); // удачный — поднимает
+    S.support=S.supportBeforeBurst; S.levelUpNext=false; S.inBurst=false;
+  } else if(S.levelUpNext){
+    S.level=Math.min(CONFIG.levels.length-1,S.level+1); S.levelUpNext=false;
+  }
+  store.set('lastLevel',S.level);
+  T.later(nextRound,1400);
+}
+
+function finish(){
+  const sessions=store.get('noTropaSessions',0);
+  store.set('noTropaSessions', S.tropaChosen==='mount' ? 0 : sessions+1);
+  show('scFinish');
+  putPic($('finHero'),CONFIG.hero.calm);
+  say('finish');
+  T.later(()=>breathe($('finCircle'),$('finHero'),CONFIG.breathFinishCycles,bridge),1800);
+}
+
+function bridge(){
+  show('scBridge');
+  putPic($('bridgeHero'),CONFIG.hero.bye);
+  putPic($('bridgeMission'),CONFIG.icons.mission);
+  const tb=$('bridgeTropa');
+  if(S.tropaChosen){ tb.classList.remove('hidden'); putPic(tb,S.tropaChosen==='mount'?CONFIG.icons.tropaMount:CONFIG.icons.tropaSame); }
+  else tb.classList.add('hidden');
+  const seq=['bridge','mission'].concat(S.tropaChosen?['tropa']:[]).concat(['backup']);
+  seq.forEach((k,i)=>T.later(()=>say(k),i*3600));
+}
+
+/* ================= ПАУЗА ================= */
+function pause(){
+  if(S.paused||S.screen==='scIntro') return;
+  S.paused=true; T.pause(); stopVoice();
+}
+function resume(){
+  if(!S.paused) return;
+  S.paused=false; T.resume();
+}
+function openPause(){ A.tap(); pause(); putPic($('pauseHero'),CONFIG.hero.calm); $('pauseOv').classList.add('on'); }
+function closePause(){ A.tap(); $('pauseOv').classList.remove('on'); resume(); }
+function goHome(){ T.clear(); stopVoice(); S.paused=false; ['pauseOv','adultOv'].forEach(x=>$(x).classList.remove('on')); show('scIntro'); }
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && S.screen!=='scIntro' && !S.paused){ pause(); putPic($('pauseHero'),CONFIG.hero.calm); $('pauseOv').classList.add('on'); } });
+
+/* ================= ОКНО ВЗРОСЛОГО ================= */
+function opt(group,val,label){ return '<button class="opt'+(String(settings[group])===String(val)?' sel':'')+'" data-g="'+group+'" data-v="'+val+'">'+label+'</button>'; }
+function renderSheet(){
+  const L=CONFIG.bridge.threeLines;
+  const lastLog=S.log.map(r=>'Доска '+r.round+': пар '+r.pairs+', лишних ходов '+r.extra+', ошибок памяти '+r.misses+
+     (r.support?', с опорой':'')+(r.burst?(r.word?', горная (слово+картинка)':', горная')+(r.fallback?' — вернулся на ровную':''):'')).join('<br>')||'Пока не играли.';
+  const noTropa=store.get('noTropaSessions',0);
+  $('sheet').innerHTML=
+  '<h2>Три строки</h2><div class="three">'+L.map(x=>'<div>'+x+'</div>').join('')+'</div>'+
+  (noTropa>=3?'<p style="margin-top:8px">Ребёнок три раза подряд не выбирал горную тропу. Попробуйте выбрать её вместе — «пойдём вдвоём».</p>':'')+
+  '<h2>Правило</h2><p>Карточки открыты несколько секунд — запомни. Потом открывай по две и ищи одинаковые.</p>'+
+  '<h2>Что тренирует</h2><p>Зрительную память на место предмета (II блок по Лурии) и удержание правила «две — сравнил — закрыл» (III блок). Эффект не замерен.</p>'+
+  '<h2>Как помочь</h2><ul><li>Сидите рядом, молчите первые 5 секунд.</li><li>Просите называть картинку вслух, когда открывает: так легче запомнить.</li><li>После «не пара» спросите: «А где была вторая?»</li></ul>'+
+  '<h2>Если трудно</h2><p>Игра сама даёт опору: показ дольше, нужная карточка светится, пар меньше. Можно включить режим «Легко». Если ребёнок совсем не удерживает 2–3 пары после нескольких занятий — это повод показать его специалисту, не диагноз.</p>'+
+  '<h2>Сколько играть</h2><p>5–7 минут, одно занятие в день. Лучше остановиться на удаче, чем доиграть через силу.</p>'+
+  '<h2>Горная тропа</h2><p>Иногда после удачных ходов Топа предлагает две тропы. Оба выбора хорошие. Горная — на одну ступень выше; если ребёнок читает — пары «картинка + слово». Спросите, почему выбрал именно эту.</p>'+
+  '<h2>Для специалиста</h2><p class="log">Ошибка памяти = открыл карточку, пара к которой уже была видна, и не нашёл. 2 подряд → опора; 3 верных подряд → опора уходит, затем +1 пара. Уровни: 2–6 пар. Пороги не проверены на детях.<br><br>'+lastLog+'</p>'+
+  '<h2>Настройки</h2>'+
+  '<div class="set"><b>Ребёнок читает</b>'+opt('reads',false,'Нет, только картинки')+opt('reads',true,'Да, с подписями')+'</div>'+
+  '<div class="set"><b>Трудность</b>'+opt('mode','auto','Сама')+opt('mode','easy','Легко')+opt('mode','together','Трудно — вместе')+'</div>'+
+  '<div class="set"><b>Начать с</b>'+opt('startLevel','auto','Сама')+[0,1,2,3,4].map(i=>opt('startLevel',i,CONFIG.levels[i].pairs+' пар')).join('')+'</div>'+
+  '<div class="set"><b>Горная тропа</b>'+opt('offers','on','Ребёнок выбирает')+opt('offers','with','Выбираем вместе')+opt('offers','off','Игра сама')+'</div>'+
+  '<div class="set"><b>Досок за раз</b>'+opt('rounds',3,'3')+opt('rounds',5,'5')+opt('rounds',7,'7')+'</div>'+
+  '<div class="set"><b>Звук и голос</b><button class="opt'+(A.on?' sel':'')+'" id="sndBtn">'+(A.on?'Включены':'Выключены')+'</button></div>'+
+  '<p class="log">Настройки трудности и подписей начинают действовать со следующей доски или игры.</p>'+
+  '<button class="closeBtn" id="closeSheet">Закрыть</button>'+
+  '<div class="sheetSign">Дядя Миша · v'+CONFIG.version+'</div>';
+  $('sheet').querySelectorAll('.opt[data-g]').forEach(b=>b.addEventListener('pointerdown',()=>{
+    A.tap(); const g=b.dataset.g, raw=b.dataset.v;
+    settings[g] = raw==='true'?true: raw==='false'?false: (g==='rounds'||(g==='startLevel'&&raw!=='auto'))? +raw : raw;
+    store.set('settings',settings); renderSheet();
+  }));
+  $('sndBtn').addEventListener('pointerdown',()=>{ A.on=!A.on; if(!A.on) stopVoice(); store.set('sound',A.on); A.tap(); renderSheet(); });
+  $('closeSheet').addEventListener('pointerdown',closeSheet);
+}
+let sheetPausedByUs=false;
+function openSheet(){ A.tap(); sheetPausedByUs=!S.paused; pause(); renderSheet(); $('adultOv').classList.add('on'); $('sheet').scrollTop=0; }
+function closeSheet(){ A.tap(); $('adultOv').classList.remove('on'); if(sheetPausedByUs && !$('pauseOv').classList.contains('on')) resume(); }
+
+/* ================= ПОДКЛЮЧЕНИЕ ================= */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function on(id,fn){ $(id).addEventListener('pointerdown',e=>{ e.preventDefault(); fn(e); }); }
+
+putPic($('introHero'),CONFIG.hero.hello);
+putPic($('pauseBtn'),CONFIG.icons.pause);
+putPic($('earBtn'),CONFIG.icons.ear);
+putPic($('resumeIco'),CONFIG.icons.resume);
+['againIco','restartIco'].forEach(x=>putPic($(x),CONFIG.icons.again));
+['homeIco','exitIco'].forEach(x=>putPic($(x),CONFIG.icons.home));
+[['againIco'],['homeIco'],['restartIco'],['exitIco']].forEach(([x])=>{ $(x).style.cssText='width:56px;height:56px;display:inline-block'; });
+
+on('playBtn',()=>{ A.ensure(); A.tap(); say('hello'); T.later(startSession,2200); $('playBtn').disabled=true; setTimeout(()=>$('playBtn').disabled=false,2500); });
+on('pauseBtn',openPause);
+on('resumeBtn',closePause);
+on('restartBtn',()=>{ A.tap(); $('pauseOv').classList.remove('on'); S.paused=false; startSession(); });
+on('exitBtn',()=>{ A.tap(); goHome(); });
+on('againBtn',()=>{ A.tap(); startSession(); });
+on('homeBtn',()=>{ A.tap(); goHome(); });
+on('earBtn',()=>{ A.ensure(); if(!S.paused && S.lastVoice) say(S.lastVoice); });
+on('adultBtn',openSheet);
+on('tropaSame',()=>chooseTropa(false));
+on('tropaMount',()=>chooseTropa(true));
+$('adultOv').addEventListener('pointerdown',e=>{ if(e.target.id==='adultOv') closeSheet(); });
+</script>
+</body>
+</html>
