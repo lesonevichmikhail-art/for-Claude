@@ -70,7 +70,7 @@
 ## Где что используется (выборка)
 - «Конь» v3: ikonka_uho (кнопка повтора), ikonka_igrat (вход), geroy_most_nesi_telefon (мостик в финале), голос ob_dyshim, ob_vdoh, ob_vydoh, ob_poslushay, ob_otnesi.
 
-## Голос: «Конь» (golos/kon), mp3 ещё не записаны
+## Голос: «Конь» (golos/kon), записано 2026-09-30
 - kon_topay — «Топай вместе.»
 - kon_reka — «У реки тишина. Стоим.»
 - kon_dyn — «Услышал «динь» — прыгаем.»
