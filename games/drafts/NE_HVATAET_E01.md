@@ -61,12 +61,8 @@ slovo_glaza «глаза» · slovo_moroz «мороз» · slovo_morozy «мо�
 slovo_ershi «ерши» · slovo_kot «кот» · slovo_koty «коты» · slovo_supy «супы» · slovo_nos «нос» · slovo_nosy «носы»
 slovo_dush «душ» · slovo_dushi «души» · slovo_kit «кит» · slovo_kity «киты»
 
-## Картинки (8) — пока серые заглушки
+## Картинки (4) — пока серые заглушки
 Хвост стиля + senior (как в ТЗ). Предметы и иконки — 512, фоны — 1024.
-- fon_lesnaya_trassa — calm forest dirt track, sunny
-- fon_derevnya — quiet village house, window with a sleeping baby crib visible
-- fon_chuzhoe_pole — vegetable garden with a small fence
-- fon_garazh — cozy garage, evening light
 - ikonka_chestnyy_pilot — round badge with a helmet and a heart
 - ikonka_proverit — magnifier over a finish flag
 - ikonka_obehat — curved arrow going around an obstacle
