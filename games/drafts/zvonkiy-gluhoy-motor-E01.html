@@ -96,7 +96,8 @@ h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .flag.fill{animation:pop .5s ease-out;background:#FFF1DE}
 
 .stage{grid-area:stage;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--vh,1vh)*1.5);min-height:0;min-width:0}
-#listen{--c:min(30vw,calc(var(--vh,1vh)*18),150px);width:var(--c);height:var(--c);border-radius:50%;background:#fff;box-shadow:0 4px 0 var(--line),0 8px 20px rgba(91,74,63,.14);padding:18%;flex:none}
+#listen{--c:min(30vw,calc(var(--vh,1vh)*18),150px);width:var(--c);height:var(--c);border-radius:50%;background:#fff;box-shadow:0 4px 0 var(--line),0 8px 20px rgba(91,74,63,.14);padding:0;flex:none;display:flex;align-items:center;justify-content:center}
+#listen img{width:64%;height:64%}
 #listen.talk{animation:soft 1s ease-in-out infinite}
 .mask{font-size:clamp(34px,min(10vw,calc(var(--vh,1vh)*9)),56px);font-weight:800;letter-spacing:4px;background:#fff;border-radius:16px;padding:0 18px;box-shadow:0 3px 0 var(--line);line-height:1.3}
 .mask .gap{display:inline-block;min-width:.8em;border-bottom:4px solid var(--ink2);text-align:center;color:#B7692F}
@@ -226,6 +227,7 @@ body.paused *{animation-play-state:paused!important}
   #scr-bridge .ibtn{width:64px;height:64px;padding:11px} .adultCard{line-height:1.22;padding:8px 12px}
   .choice .cap{font-size:15px} .badges{min-height:34px} .badges .bd{width:34px;height:34px} }
 #brCard.shut p{display:none}
+#infoBtn{position:relative}#infoBtn::before{content:"";position:absolute;inset:-8px}
 #rest{position:absolute;inset:0;z-index:35;background:rgba(255,248,238,.94);display:none;flex-direction:column;align-items:center;justify-content:center;gap:28px}
 #rest.on{display:flex}
 .rCircle{position:relative;width:min(56vmin,300px);height:min(56vmin,300px);border-radius:50%;border:4px solid var(--line);background:#fff;cursor:pointer;padding:0}
@@ -265,8 +267,8 @@ body.paused *{animation-play-state:paused!important}
   <section class="screen meadow" id="scr-gear" aria-label="Шлем и перчатки">
     <div class="gPilot" id="gPilot"><div class="gImg"></div><div class="onH"></div><div class="onG"></div></div>
     <div class="gItems">
-      <button class="gItem" id="gHelmet" data-k="h" aria-label="Шлем"></button>
-      <button class="gItem" id="gGloves" data-k="g" aria-label="Перчатки"></button>
+      <button class="gItem" id="gHelmet" data-own data-k="h" aria-label="Шлем"></button>
+      <button class="gItem" id="gGloves" data-own data-k="g" aria-label="Перчатки"></button>
     </div>
   </section>
 
@@ -312,8 +314,8 @@ body.paused *{animation-play-state:paused!important}
 
   <!-- I блок: отдых по желанию — после 45 с без действий -->
   <div id="rest" role="dialog" aria-label="Отдохнём">
-    <button class="rCircle" id="rCircle" aria-label="Подышать"><div class="bi" id="rNose"></div><div class="bi" id="rMouth" style="opacity:0"></div></button>
-    <button class="ibtn" id="rBack" aria-label="Играть дальше"></button>
+    <button class="rCircle" id="rCircle" data-own aria-label="Подышать"><div class="bi" id="rNose"></div><div class="bi" id="rMouth" style="opacity:0"></div></button>
+    <button class="ibtn" id="rBack" data-own aria-label="Играть дальше"></button>
   </div>
 
   <div id="pause" role="dialog" aria-label="Пауза">
@@ -692,7 +694,9 @@ function draftOff(){ clearTimeout(draftT); draftT=setTimeout(()=>$('#draft').cla
 /* короткая фраза на экране: senior — да, младшим — нет */
 function phrase(key){
   if(S.set.age!=='senior' || !SHOWN(key) || !['learn','play','gear'].includes(S.screen)) return;
-  $('#phrase').textContent=VOICE[key]||'';
+  const t=VOICE[key]||'';                                   // на экране — только первое предложение, голос говорит всё
+  const m=t.match(/^[^.!?]*[.!?]/);
+  $('#phrase').textContent = t.length>40 && m ? m[0] : t;
 }
 /* медленная версия слова: есть _medl — её, нет — обычную ещё раз */
 const slow=k=>ZVUK[k+'_medl']?k+'_medl':k;
@@ -1206,7 +1210,7 @@ async function careFork(ep){
 FLOW.finish = async ep=>{
   S.lock=true;
   bg($('#garage'),'fon_garazh');
-  $('#gQuad').innerHTML=pic('predmet_kvadrocikl','квадроцикл');
+  $('#gQuad').innerHTML='';                                   // квадроцикл уже нарисован в гараже
   $('#fBadges').innerHTML=badgesHTML(S.badges);
   $('#fNose').innerHTML=pic('ikonka_nos','нос'); $('#fMouth').innerHTML=pic('ikonka_rot','рот');
   A.done();
@@ -1227,7 +1231,7 @@ FLOW.bridge = async ep=>{
   $('#brTrail').innerHTML='<div class="thumbs">'+badgesHTML(S.badges).replace(/class="bd/g,'class="th')+'</div>';
   /* текст взрослому свёрнут: ребёнку не нужен, взрослый раскроет сам */
   $('#brCard').classList.add('shut');
-  $('#brCard').innerHTML='<button class="lbl" id="brOpen">Для взрослого ▸</button>'+CONTENT.adult3.map(t=>'<p>'+t+'</p>').join('');
+  $('#brCard').innerHTML='<button class="lbl" id="brOpen" data-own>Для взрослого ▸</button>'+CONTENT.adult3.map(t=>'<p>'+t+'</p>').join('');
   $('#brOpen').addEventListener('pointerdown',e=>{ e.preventDefault(); const c=$('#brCard'); c.classList.toggle('shut'); e.target.textContent='Для взрослого '+(c.classList.contains('shut')?'▸':'▾'); });
   const coarse = window.matchMedia && matchMedia('(pointer:coarse)').matches;
   await sleep(500);
@@ -1259,6 +1263,9 @@ function sheetHTML(){
   '<p>Ошибок в игре нет. Не тот мотор — слово звучит ещё раз. Второй раз — слово медленно, нужный мотор светится. Третий — квадроцикл едет сам. После каждых 5 участков — развилка: как поступит пилот. Выбор без заботы — вопрос «А что почувствует…?» и выбор ещё раз, без штрафа.</p>'+
   '<p><b>Подстройка сама.</b> Первая игра начинается с середины и по двум заданиям выбирает уровень. Два трудных задания подряд — опора: слово звучит дважды (второй раз медленно), квадроцикл сам чуть дрожит на звонком. Ещё два трудных — уровень ниже. Два чистых — опора уходит, ещё два — уровень выше. Повторная игра — на ступень легче. Ухо и развилки не считаются.</p>'+
   '<p>Уровни: 1 — слоги с А (ба/па); 2 — слоги с О, У, Ы; 3 — звук в начале слова (бочка/почка); 4 — проверка на финише (зуб → зубы, буква встаёт на финиш).</p>'+
+  '<p>Перед словом Дядя Миша говорит, какой звук ловить: «Слушай первый звук» (уровни 1–3) или «Теперь слушай последний звук» (уровень 4).</p>'+
+  '<p>Нет действий 15 с — «Не спеши. Я рядом». 45 с — окно отдыха: нажать на нос — 2 спокойных вдоха-выдоха, стрелка — играть дальше.</p>'+
+  '<p>Мостик: ребёнок слышит, кому отнести телефон, и миссию; ваши три строки — под кнопкой «Для взрослого». «Покажи игрушке» звучит только для 5–7 лет.</p>'+
   '<h2>Если трудно</h2><p>Режим «Легко» — нижний уровень и опора всегда. Темп «Медленный». Путает все пары и в жизни часто переспрашивает — покажите ЛОРу или сурдологу. Это не диагноз, просто проверка слуха.</p>'+
   '<h2>Сколько играть</h2><p>5–7 минут, один раз в день (3 круга по 5 участков). Лучше каждый день понемногу.</p>'+
   '<h2>Для специалиста</h2><p>Какие пары путает — строка «Промахи по парам». Путает только в конце слова (L4 без проверки) — это контроль; путает везде, с L1 — это слух.</p>'+log+
@@ -1328,7 +1335,17 @@ function setupButtons(){
   $('#againBtn').onclick=()=>{ A.tap(); startGame(); go('breath'); };
   $('#homeBtn').onclick=async()=>{ A.tap(); const ep=++RT.epoch; try{ await say(ep,'ob_poka'); }catch(e){} go('intro'); };
 }
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && !['intro','bridge'].includes(S.screen)) openPause(); else if(document.hidden) V.pause(); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && !['intro','bridge'].includes(S.screen)) openPause(); else if(document.hidden) V.pause(); else if(['intro','bridge'].includes(S.screen)) V.resume(); });
+/* все кнопки срабатывают на касание (pointerdown), без задержки click; двойного срабатывания нет */
+document.addEventListener('pointerdown',e=>{
+  const b=e.target.closest && e.target.closest('button'); if(!b || b.disabled || b.hasAttribute('data-own')) return;
+  RT.pdGhost=true; b.click();
+},true);
+/* «призрачный» click после касания гасим везде — и на кнопке, и на окне, которое она открыла */
+document.addEventListener('click',e=>{
+  if(e.isTrusted && RT.pdGhost){ RT.pdGhost=false; e.stopImmediatePropagation(); e.preventDefault(); }
+},true);
+document.addEventListener('pointercancel',()=>{ RT.pdGhost=false; },true);
 
 /* ================= СТАРТ ================= */
 function setVH(){ const h=(window.visualViewport&&visualViewport.height)||innerHeight; document.documentElement.style.setProperty('--vh',(Math.min(h,innerHeight)/100)+'px'); }
