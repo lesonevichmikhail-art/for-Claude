@@ -3,6 +3,8 @@
 Библиотека PNG_LIBRARY не подключена — **сверь с библиотекой**, что уже есть (слонёнок, носки, иконки паузы/уха могут быть).
 
 ## Картинки
+**Осталось 2: ikonka_dalshe.png, ikonka_domoy.png.** Всё остальное вставлено, каталог — `assets/images/PNG_LIBRARY.md`.
+
 Уже вставлены (2026-09-30): predmet_dom, predmet_kot, predmet_delfin (вместо рыбы), predmet_myach, predmet_banan, predmet_zont, predmet_sova, predmet_yabloko, predmet_luna, predmet_grib, predmet_lodka, predmet_dva_noska, Топа «привет» и «смотрит», рубашка карты, ровная тропа (шахматку убрал `tools/ubrat_shahmatku.py`), predmet_ryba (рыба вернулась, дельфин остался 13-м предметом). Лежат в `assets/images/`.
 
 Хвост стиля (добавлять к каждому промпту):
@@ -10,15 +12,7 @@
 
 | Файл | Размер | Промпт (начало, потом хвост) |
 |---|---|---|
-| geroy_slonenok_topa_raduetsya.png | 1024×1024 | the same baby elephant happy, trunk up, gentle smile, |
-| geroy_slonenok_topa_dyshit.png | 1024×1024 | the same baby elephant sitting calmly with eyes half closed, breathing in, peaceful, |
-| geroy_slonenok_topa_mashet.png | 1024×1024 | the same baby elephant waving goodbye with its ear and trunk, |
-| predmet_shapka.png | 512×512 | a knitted winter hat, |
-| ikonka_tropa_gornaya.png | 512×512 | a winding path going up a gentle mountain, |
-| ikonka_pauza.png | 512×512 | pause icon, two rounded vertical bars in a circle, |
-| ikonka_uho.png | 512×512 | a friendly ear icon, |
 | ikonka_dalshe.png | 512×512 | a rounded arrow pointing right, play icon, |
-| ikonka_esche_raz.png | 512×512 | a rounded circular arrow, repeat icon, |
 | ikonka_domoy.png | 512×512 | a small house icon for home button, |
 
 Важно: все 12 предметов — **разные по силуэту и цвету**, чтобы ребёнок не путал (кот и сова не одного цвета). Одинаковый масштаб, объект во весь кадр.
