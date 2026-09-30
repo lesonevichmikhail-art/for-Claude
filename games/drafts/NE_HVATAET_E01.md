@@ -61,7 +61,4 @@ slovo_glaza «глаза» · slovo_moroz «мороз» · slovo_morozy «мо�
 slovo_ershi «ерши» · slovo_kot «кот» · slovo_koty «коты» · slovo_supy «супы» · slovo_nos «нос» · slovo_nosy «носы»
 slovo_dush «душ» · slovo_dushi «души» · slovo_kit «кит» · slovo_kity «киты»
 
-## Картинки (2) — пока серые заглушки
-Хвост стиля + senior (как в ТЗ). Предметы и иконки — 512, фоны — 1024.
-- ikonka_obehat — curved arrow going around an obstacle
-- ikonka_ladon_gorlo — child hand gently on own throat, side view
+## Картинки — все 17 вшиты, заглушек 0.
