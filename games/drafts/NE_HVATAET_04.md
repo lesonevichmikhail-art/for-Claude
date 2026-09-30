@@ -3,6 +3,8 @@
 Библиотека PNG_LIBRARY не подключена — **сверь с библиотекой**, что уже есть (слонёнок, носки, иконки паузы/уха могут быть).
 
 ## Картинки
+Уже вставлены (2026-09-30): predmet_dom, predmet_kot, predmet_delfin (вместо рыбы), predmet_myach. Лежат в `assets/images/`.
+
 Хвост стиля (добавлять к каждому промпту):
 > flat warm vector illustration, thick dark-brown outline, earthy warm palette (terracotta, ochre, olive green, cream, soft brown), rounded simple shapes, friendly calm expression, children's educational game asset, centered, full figure, transparent background, PNG, no text, no letters unless specified, no drop shadow, very round shapes, big eyes, chubby proportions, cute
 
@@ -13,10 +15,6 @@
 | geroy_slonenok_topa_raduetsya.png | 1024×1024 | the same baby elephant happy, trunk up, gentle smile, |
 | geroy_slonenok_topa_dyshit.png | 1024×1024 | the same baby elephant sitting calmly with eyes half closed, breathing in, peaceful, |
 | geroy_slonenok_topa_mashet.png | 1024×1024 | the same baby elephant waving goodbye with its ear and trunk, |
-| predmet_kot.png | 512×512 | a sitting cat, |
-| predmet_dom.png | 512×512 | a small simple house, |
-| predmet_myach.png | 512×512 | a round ball, |
-| predmet_ryba.png | 512×512 | a fish, side view, |
 | predmet_luna.png | 512×512 | a crescent moon, |
 | predmet_sova.png | 512×512 | an owl sitting, |
 | predmet_lodka.png | 512×512 | a small boat, |
