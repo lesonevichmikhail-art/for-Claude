@@ -113,7 +113,7 @@
 </section>
 
 <!-- ══ ЭКРАН game — дыхание со звездой.
-     Вход (2 цикла, рука на груди) и знакомство — звено A (блок I: тонус, дыхание, ощущение тела).
+     Вход (2 цикла, рука на животе) и знакомство — звено A (блок I: тонус, дыхание, ощущение тела).
      Игра — блок III: ребёнок сам удерживает правило «держу — вдох, отпускаю — выдох» и подстраивается под ритм. ══ -->
 <section class="screen" id="scr-game" data-luria="A, блок III">
   <div id="starBox">
@@ -204,7 +204,7 @@ const DATA = {
   age: 'junior',                 // 5–8 лет: текста у ребёнка нет, всё говорит голос
   cycles: 8,                     // циклов в игре (в окне взрослого 6 / 8 / 10)
   cycleOptions: [6, 8, 10],
-  enterCycles: 2,                // вход: дышим с рукой на груди, без оценки
+  enterCycles: 2,                // вход: дышим с рукой на животе, без оценки
   learnCycles: 2,                // знакомство: «держи — расту, отпусти — отдыхаю», без оценки
   finishCycles: 1,               // финал: один спокойный цикл
   // Уровни = длина выдоха. Темп не растёт: «сложнее» = дольше выдох. Пороги не проверены на детях.
@@ -528,7 +528,7 @@ function startGame() {
                      offers: 0, failedBursts: 0, chosen: 'same', mountainDone: false, paused: false, held: false, touched: false });
   G.lastTouch = Date.now();
   go('game'); setStar(0, false);
-  // вход: привет, рука на груди, 2 цикла
+  // вход: привет, рука на животе, 2 цикла
   Voice.say(['luch_privet', 'luch_ruka', 'ob_dyshim'], () => {
     if (current !== 'game') return;
     startStage('enter', DATA.enterCycles, () => {
