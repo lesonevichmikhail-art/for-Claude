@@ -48,7 +48,7 @@
 
 Опционально позже: названия предметов (slovo_kot.mp3 … slovo_zont.mp3), чтобы Топа называл открытую картинку.
 
-## Добавлено 2026-10-01: подсказка дыхания (общая для всех игр)
+## Добавлено 2026-10-01: подсказка дыхания (общая для всех игр) — ВСТАВЛЕНО
 Стоят внутри круга дыхания под Топой: вдох — нос, выдох — рот, конец — галочка. Пойдут в библиотеку для всех игр.
 Хвост: flat warm vector illustration, thick dark-brown outline, earthy warm palette (terracotta, ochre, olive green, cream, soft brown), rounded simple shapes, friendly calm expression, children's educational game asset, centered, transparent background, PNG, no text, no letters, no drop shadow, very round shapes, cute
 
