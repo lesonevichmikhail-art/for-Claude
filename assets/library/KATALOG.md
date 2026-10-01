@@ -91,3 +91,4 @@
 - geroy_myshka_stoit — мышка-девочка в горчичном платье, стоит (Михаил 2026-10-01, фон убран из JPG). «Мышка в классиках».
 - geroy_myshka_pryzhok — та же мышка в прыжке; geroy_myshka_privet — машет лапкой; geroy_papa_mysh — папа-мышь в зелёном свитере; geroy_papa_mysh_kruzhit — папа кружит мышку (Михаил 2026-10-01, фон убран из JPG).
 - ikonka_tropa — горка с тропинкой и флажком (кнопка «горная тропа»); geroy_myshka_prizemlenie — мышка приземлилась; fon_park — парк с тропинкой, вертикальный (Михаил 2026-10-01).
+- golos/en — английский счёт en_one…en_twenty, en_hello, en_goodbye (Михаил 2026-10-01). golos/06 — фразы «Мышки» 06_*. ru_hello, ru_goodbye — в obshchie.
