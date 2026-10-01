@@ -93,3 +93,6 @@
 - **Фоны:** fon_doroga_perekrestok (перекрёсток), fon_gorod
 - **Иконки:** ikonka_rul_levyy, ikonka_rul_pravyy (ладони-рули)
 - Голос игры (ключи `11_*`) ещё не записан; папка будет `golos/nav11/`. Фразы «тропы» берёт из `golos/kon` (kon_vybor, kon_bridge_gornaya).
+
+## Голос: «Навигатор» (golos/nav11), записано 2026-10-01
+11_vhod, 11_braslet, 11_lift, 11_lift_vniz, 11_podnimi_levuyu, 11_podnimi_pravuyu, 11_nalevo, 11_napravo, 11_pryamo, 11_naoborot, 11_obychno, 11_zapomni, 11_zerkalo, 11_zerkalo_pravaya, 11_most — тексты в `games/final/ZAPIS_navigator.md`. Нарезка по паузам и слогам (имя файла пришло стёртым), ждёт проверки на слух.
