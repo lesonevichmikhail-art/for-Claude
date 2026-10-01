@@ -16,12 +16,6 @@
 Хвост промпта: flat warm vector illustration, thick dark-brown outline, earthy warm palette, rounded simple shapes, very round shapes, big eyes, chubby proportions, cute, transparent background, PNG, no text.
 
 ## Голос (mp3, твой голос) — сценарий записи в `ZAPIS_myshka.md`
-Общие фразы `ob_*` уже вшиты из библиотеки. Не хватает: 22 русских слова (числа 1–20, «Привет», «Пока»), 22 английских, 14 фраз игры — всего 58.
+Общие фразы `ob_*` уже вшиты из библиотеки. Числа 1–20 по-русски уже вшиты (из «Больше, меньше, равно»). Не хватает: «Привет», «Пока», 22 английских, 14 фраз игры — всего 38.
 
-## Промпт мышки (все позы — одна и та же мышка, один размер холста)
-cute little grey-beige mouse girl, big round ears with pink inside, big kind eyes, long thin curved tail, small pink nose, short ochre dress, [POSE], flat warm vector illustration, thick dark-brown outline, earthy warm palette, very round shapes, big eyes, chubby proportions, cute, centered, full figure, transparent background, PNG, no text, no drop shadow, NOT a hamster
-
-Позы: pryzhok — jumping mid-air, legs tucked, tail up · prizemlenie — just landed, standing on both feet, arms slightly out · privet — standing, waving one paw.
-
-## Голос: что записать первым
-Числа 1–12 по-русски и по-английски (модули «до 5», «до 10», «до 12»). Числа 13–20 нужны только для модуля «11–20» — можно позже.
+Промпты картинок — `prompts/PROMPTY_myshka-v-klassikah.md`.
