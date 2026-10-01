@@ -33,7 +33,7 @@ h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .corner{min-width:64px;font-size:clamp(13px,3.4vw,16px);font-weight:800;color:#B7792F;letter-spacing:.5px;white-space:nowrap}
 .ibtn{width:64px;height:64px;border-radius:18px;background:var(--card);box-shadow:0 3px 0 var(--line),0 4px 12px rgba(91,74,63,.12);display:flex;align-items:center;justify-content:center;padding:10px;flex:none}
 .ibtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
-#infoBtn{margin-left:auto;width:48px;height:48px;border-radius:50%;font-size:24px;font-weight:800;font-family:Georgia,serif;font-style:italic;color:var(--ink2);padding:0}
+#infoBtn{margin-left:auto;width:64px;height:64px;border-radius:50%;font-size:24px;font-weight:800;font-family:Georgia,serif;font-style:italic;color:var(--ink2);padding:0}
 #earBtn{margin-left:auto}
 #earBtn:not(.hide)+#infoBtn{margin-left:10px}
 .hide{display:none!important}
@@ -617,7 +617,7 @@ setInterval(()=>{
   if(!S.waiting || RT.paused || V.busy || S.resting) return;
   S.idleMs+=250;
   if(S.idleStage===0 && S.idleMs>=CONFIG.idle1){ S.idleStage=1; S.log&&S.log.idle++; V.say('ob_ne_speshi'); }
-  else if(S.idleStage===1 && S.idleMs>=CONFIG.idle2){ S.idleStage=2; if(S.screen==='play'||S.screen==='learn') restWindow(RT.epoch,false).then(()=>{ if(S.waiting&&S.lastInstr.length) V.say(S.lastInstr[0]); }).catch(()=>{}); else V.say('ob_otdohnem'); }
+  else if(S.idleStage===1 && S.idleMs>=CONFIG.idle2){ S.idleStage=2; if(S.screen==='play'||S.screen==='learn') restWindow(RT.epoch,false).then(()=>{ if(S.waiting&&S.lastInstr.length&&S.lastInstr[0]!=='11_zapomni') V.say(S.lastInstr[0]); }).catch(()=>{}); else V.say('ob_otdohnem'); }
 },250);
 
 /* ================= ДЫХАНИЕ ================= */
@@ -719,6 +719,7 @@ function afterTask(misses, hinted, fast){
     }
     return;
   }
+  if(!clean) S.ch.want=false;
   if(hard){ S.hardRun++; S.cleanRun=0; } else if(clean){ S.cleanRun++; S.hardRun=0; } else { S.hardRun=0; S.cleanRun=0; }
   const canLevel = S.set.mode==='auto'||S.set.mode==='manual', canSupport = S.set.mode!=='easy';
   if(S.ch.burst){ burstStep(hard, clean); return; }
@@ -771,6 +772,7 @@ function endBurst(ok){
   else { S.ch.failed++; S.level=base; S.log.levels.push('тихо вниз → '+base); }
   setSupportView();
 }
+function quietBack(){ S.level=S.ch.base; S.ch.burst=0; S.support=false; S.log.levels.push('заход не добит → '+S.level); setSupportView(); }
 function tropaPick(up){ if(S.tropaPick){ const r=S.tropaPick; S.tropaPick=null; r(up); } }
 
 /* ================= ОТДЫХ: 45 с без действий или между раундами ================= */
@@ -779,10 +781,10 @@ async function restWindow(ep, auto){
   const r=$('#rest'); $('#rNose').innerHTML=pic('ikonka_nos','нос'); $('#rMouth').innerHTML=pic('ikonka_rot','рот');
   $('#restNext').innerHTML=pic('ikonka_strelka','играть дальше'); r.classList.add('on');
   $('#restNext').classList.toggle('vhide', !!auto);
-  let breathing=false;
-  const go1=async n=>{ if(breathing) return; breathing=true; try{ await breathe(ep, n, $('#rCircle'), $('#rNose'), $('#rMouth')); }catch(e){} breathing=false; };
+  let bp=null;
+  const go1=n=>{ if(!bp) bp=breathe(ep, n, $('#rCircle'), $('#rNose'), $('#rMouth')).catch(()=>{}).then(()=>{ bp=null; }); return bp; };
   $('#rCircle').onpointerdown=e=>{ e.preventDefault(); A.tap(); go1(CONFIG.restBreaths); };
-  if(auto){ await say(ep,'ob_dyshim'); await go1(CONFIG.betweenRoundsBreaths); }
+  if(auto){ try{ await say(ep,'ob_dyshim'); }catch(e){ if(!bp) throw e; } if(bp) await bp; else await go1(CONFIG.betweenRoundsBreaths); }
   else { V.say('ob_otdohnem'); await new Promise(res=>{ S.restDone=res; }); }
   r.classList.remove('on'); S.resting=false; S.idleMs=0; S.idleStage=0; chk(ep);
 }
@@ -893,7 +895,8 @@ FLOW.play = async ep=>{
     for(let t=0;t<lenNow();t++){
       const len=lenNow();
       chk(ep);
-      const lastOfGame = round===R-1 && t===len-1;
+      const lastOfGame = round===R-1 && t>=len-1;
+      if(lastOfGame && S.ch.burst) quietBack();
       let lv=S.level;
       if(lastOfGame && S.prevHard) lv=Math.max(layerRange()[0], Math.min(lv,2));   // после трудного — последнее лёгкое
       /* волшебный фонарь: только уровень 4, только если хватает заданий, чтобы погасить его и закончить обычным */
@@ -912,7 +915,7 @@ FLOW.play = async ep=>{
       if(S.inv){ invLeft--; if(invLeft<=0){ S.inv=false; offAt=t+1; await lanternOff(ep); } }   // между фонарями — минимум 2 обычных
     }
     if(S.inv){ S.inv=false; await lanternOff(ep); }
-    if(S.ch.burst) endBurst(true);
+    if(S.ch.burst) quietBack();
     if(round<R-1){ A.done(); await say(ep,'ob_zdorovo'); await restWindow(ep,true); }
   }
   go('finish');
@@ -1109,7 +1112,7 @@ function sheetHTML(){
   '<h2>Настройки</h2>'+
   '<div class="setl">Возраст</div>'+seg('age',[['junior','5–8 лет'],['senior','8–10 лет']])+
   '<div class="setl">Трудность</div>'+seg('mode',[['auto','Сама'],['easy','Легко'],['calm','Спокойно: без подъёма и фонаря'],['hard','Трудно — вместе'],['manual','Начать с уровня…']])+
-  '<div class="setl">Горная дорога (выбор ребёнка)</div>'+seg('tropa',[['child','Ребёнок выбирает'],['together','Вместе со взрослым'],['off','Игра сама']])+
+  '<div class="setl">Горная дорога (выбор ребёнка)</div>'+seg('tropa',[['child','Ребёнок выбирает'],['off','Игра сама']])+
   (st.mode==='manual'?seg('startLevel',[[1,'1 · тело'],[2,'2 · стрелка+слово'],[3,'3 · слово'],[4,'4 · фонарь'],[5,'5 · маршрут'],[6,'6 · зеркало']]):'')+
   '<div class="setl">Цвет браслета</div><div class="seg" data-k="brc">'+CONTENT.brColors.map(c=>'<button data-v="'+c[0]+'" class="'+(st.brc===c[0]?'on':'')+'"><span class="sw" style="background:'+c[0]+'"></span>'+c[1]+'</button>').join('')+'</div>'+
   '<div class="setl">Волшебный фонарь (смена правила)</div>'+seg('sw',[[true,'Включён'],[false,'Выключен']])+
@@ -1180,11 +1183,11 @@ document.addEventListener('pointerdown',e=>{
   if(e.pointerType==='mouse' && e.button!==0) return;
   const b=e.target.closest && e.target.closest('button');
   if(!b || b.disabled || b.closest('[data-own]')){ RT.pdGhost=false; return; }
-  e.preventDefault(); RT.pdGhost=true; b.click();
+  e.preventDefault(); RT.pdGhost=true; clearTimeout(RT.pdT); RT.pdT=setTimeout(()=>{ RT.pdGhost=false; },700); b.click();
 },{capture:true});
 document.addEventListener('click',e=>{ if(RT.pdGhost && e.isTrusted){ RT.pdGhost=false; e.stopPropagation(); e.preventDefault(); } },{capture:true});
 document.addEventListener('pointercancel',()=>{ RT.pdGhost=false; },{capture:true});
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && !['intro','bridge'].includes(S.screen)) openPause(); else if(document.hidden) V.pause(); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && !['intro','bridge'].includes(S.screen)) openPause(); else if(document.hidden) V.pause(); else if(!RT.paused) V.resume(); });
 
 /* ================= СТАРТ ================= */
 function setVH(){ const h=(window.visualViewport&&visualViewport.height)||innerHeight; document.documentElement.style.setProperty('--vh',(Math.min(h,innerHeight)/100)+'px'); }

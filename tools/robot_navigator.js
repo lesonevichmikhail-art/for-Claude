@@ -36,7 +36,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       if (st.scr === 'breath' && st.next) { await page.tap('#bNext', { force: true }); await sleep(100); continue; }
       if ((st.scr === 'play' || st.scr === 'learn') && st.waiting && !st.lock) {
         if (!idleTested && st.scr === 'play') { idleTested = true; await sleep(3500); continue; }
-        let d = st.want; if (Math.random() < 0.18) { d = d === 'L' ? 'R' : 'L'; r.miss++; }
+        let d = st.want; if (Math.random() < +(process.env.MISS || 0.18)) { d = d === 'L' ? 'R' : 'L'; r.miss++; }
         const sel = st.mir ? (d === 'L' ? '.mzone.zl' : '.mzone.zr') : '#btn' + d;
         if (await page.isVisible(sel)) await page.tap(sel, { force: true });
         await sleep(80); continue;
