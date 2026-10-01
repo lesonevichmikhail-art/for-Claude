@@ -24,7 +24,7 @@ const path=require('path');const out=process.argv[3]||'.';
  }
  await p.waitForTimeout(300);await snap('finish');
  const r=await p.evaluate(()=>({cur:current,obs:{...OBS},chosen:G.chosen}));
- await tapEl('bridgeAdult');await snap('finish_vzrosly');
+ 
  await tapEl('btnAdult');await p.waitForTimeout(200);await snap('adult');
  const scr=await p.evaluate(()=>{const a=document.getElementById('adult');return a.scrollHeight>a.clientHeight});
  await tapEl('closeAdult');
