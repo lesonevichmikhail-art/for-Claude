@@ -86,3 +86,10 @@
 
 ## Правила библиотеки
 - Одно место: `assets/library/`. Любой присланный PNG или mp3 кладём сюда сразу и дописываем строку в каталог. Подробнее: `.claude/skills/rech-i-biblioteka`.
+
+## PNG из игры «Навигатор: лево и право» (добавлены 2026-10-01)
+- **Герои:** geroy_navigator (робот-навигатор), geroy_devochka_zerkalo (стоит лицом, рука поднята — зеркало), geroy_lift (фигура для «Лифта» по телу)
+- **Предметы:** predmet_mashinka_sboku (машинка, смотрит вправо), predmet_fonar (волшебный фонарь)
+- **Фоны:** fon_doroga_perekrestok (перекрёсток), fon_gorod
+- **Иконки:** ikonka_rul_levyy, ikonka_rul_pravyy (ладони-рули)
+- Голос игры (ключи `11_*`) ещё не записан; папка будет `golos/nav11/`. Фразы «тропы» берёт из `golos/kon` (kon_vybor, kon_bridge_gornaya).
