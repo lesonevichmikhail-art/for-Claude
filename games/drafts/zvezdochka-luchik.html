@@ -163,7 +163,7 @@
 <div id="adult">
   <div class="card">
     <h3>Шпаргалка взрослому</h3>
-    <p><b>Правило:</b> палец на звезде — вдох, звезда растёт; палец убрал — выдох, звезда отдыхает.</p>
+    <p><b>Правило:</b> звезда растёт, только пока палец держит её (вдох), отпустил — сжимается (выдох). Пунктирный круг сам дышит в ритме: ребёнок ведёт звезду вслед за кругом.</p>
     <h3>Что тренирует</h3>
     <p>Звено A (блок I по Лурии): тонус, спокойное дыхание животом, ощущение тела («рука на животе»). Поверх — удержание простого правила и подстройка под чужой ритм (блок III). Выдох длиннее вдоха. Эффект не замерен.</p>
     <h3>Как помочь</h3>
@@ -362,8 +362,10 @@ const Voice = {
     if (!ZVUK[key]) { draft(); return; }
     let a = this.cache[key]; if (!a) { a = new Audio(ZVUK[key]); this.cache[key] = a; }
     try { a.currentTime = 0; } catch (e) { /* не загружен */ }
-    this.el = a; a.onended = fin; a.onerror = draft;
-    const p = a.play(); if (p && p.catch) p.catch(draft);
+    // mp3 есть, но телефон не дал проиграть: полоску-заглушку НЕ показываем, просто идём дальше по таймеру
+    const quiet = () => { if (tk !== this.tok) return; clearTimeout(this.timer); this.timer = setTimeout(fin, Math.min(3000, 600 + text.length * 50)); };
+    this.el = a; a.onended = fin; a.onerror = quiet;
+    const p = a.play(); if (p && p.catch) p.catch(quiet);
     clearTimeout(this.timer); this.timer = setTimeout(fin, 12000);
   },
   repeat() { if (this.last.length) this.say(this.last, null, true); }
@@ -371,16 +373,23 @@ const Voice = {
 
 /* ═══ ЗВЕЗДА: всё, что должно совпадать (картинка, свечение, кольцо-подсказка), меняет ОДНА функция ═══ */
 let STAR_PX = 200;
-function setStar(p, support) {                         // p: 0 — выдох (маленькая), 1 — вдох (большая)
+// p — звезда ребёнка (растёт, только пока палец на ней); tp — пунктирный круг-ритм (живёт сам). null — круга нет.
+// 0 — выдох (маленькая), 1 — вдох (большая)
+function setStar(p, tp, support) {
   const s = DATA.starScale[0] + (DATA.starScale[1] - DATA.starScale[0]) * p;
   const star = $('starPic');
   star.style.transform = 'scale(' + s.toFixed(3) + ')';
   const g = $('glow'), gs = STAR_PX * (1.1 + 0.9 * p);
   g.style.width = g.style.height = gs + 'px'; g.style.marginLeft = g.style.marginTop = (-gs / 2) + 'px';
   g.style.opacity = (0.45 + 0.55 * p).toFixed(3);
-  const r = $('ring'), rs = STAR_PX * DATA.starScale[1] * 1.02;
-  r.style.width = r.style.height = rs + 'px'; r.style.marginLeft = r.style.marginTop = (-rs / 2) + 'px';
-  r.style.opacity = support ? (0.35 + 0.5 * p).toFixed(3) : '0';
+  const r = $('ring');
+  if (tp === null) r.style.opacity = '0';
+  else {
+    const rs = STAR_PX * (DATA.starScale[0] + (DATA.starScale[1] - DATA.starScale[0]) * tp) * 1.08;
+    r.style.width = r.style.height = rs + 'px'; r.style.marginLeft = r.style.marginTop = (-rs / 2) + 'px';
+    r.style.opacity = support ? '0.95' : '0.55';
+    r.style.borderWidth = support ? '6px' : '4px';
+  }
   $('hand').style.opacity = support ? '0.95' : '0';
 }
 
@@ -391,7 +400,7 @@ const G = {
   phase: 'in', phaseStart: 0, phaseDur: 0, cycleInStage: 0, stageCycles: 0,
   held: false, touched: false, rightS: 0, judgedS: 0, inOk: false, lastT: 0,
   burst: 0, burstMiss: 0, offers: 0, failedBursts: 0, chosen: 'same', mountainDone: false,
-  paused: false, raf: 0, gen: 0, lastTouch: 0, afterStage: null
+  paused: false, raf: 0, gen: 0, cp: 0, lastTouch: 0, afterStage: null
 };
 const OBS = { ok: 0, miss: 0, none: 0, supports: 0, levelUps: 0, offers: 0, mountain: 0, start: 0 };
 function resetObs() { for (const k in OBS) OBS[k] = 0; OBS.start = Date.now(); }
@@ -449,7 +458,14 @@ function loop() {
     const t = nowS(), dt = Math.min(0.1, t - G.lastT); G.lastT = t;
     const k = (t - G.phaseStart) / G.phaseDur;
     const p = G.phase === 'in' ? ease(k) : 1 - ease(k);
-    setStar(p, G.support || G.stage === 'learn');
+    // Палец двигает звезду: держишь — растёт (вдох), отпустил — сжимается (выдох). Круг показывает ритм.
+    // На входе, в отдыхе и в финале пальца нет: звезда дышит сама вместе с ребёнком.
+    const finger = G.stage === 'play' || G.stage === 'learn';
+    if (finger) {
+      const L = DATA.levels[effLevel()];
+      G.cp = Math.max(0, Math.min(1, G.cp + (G.held ? dt / L.inS : -dt / L.outS)));
+      setStar(G.cp, p, G.support || G.stage === 'learn');
+    } else { G.cp = p; setStar(p, null, false); }
     // оценка: в фазе вдоха палец на звезде, в фазе выдоха — палец убран
     if (G.stage === 'play' && t - G.phaseStart > DATA.judge.skipS) {
       G.judgedS += dt;
@@ -538,7 +554,7 @@ function startGame() {
   Object.assign(G, { level: 0, support: false, okRow: 0, badRow: 0, played: 0, total: SET.cycles, burst: 0, burstMiss: 0,
                      offers: 0, failedBursts: 0, chosen: 'same', mountainDone: false, paused: false, held: false, touched: false });
   G.lastTouch = Date.now();
-  go('game'); setStar(0, false);
+  go('game'); G.cp = 0; setStar(0, null, false);
   // вход: привет, рука на животе, 2 цикла
   Voice.say(['luch_privet', 'luch_ruka', 'ob_dyshim'], () => {
     if (current !== 'game') return;
@@ -681,7 +697,7 @@ function layout() {
   const f = Math.floor(Math.min(W * 0.36, H * 0.26, 240)); fin.style.width = fin.style.height = f + 'px';
   const small = Math.floor(Math.min(W * 0.22, H * 0.16, 140));
   ['finPath', 'finBridge'].forEach(id => { $(id).style.width = $(id).style.height = small + 'px'; });
-  if (current === 'game') setStar(0, false);
+  if (current === 'game') setStar(G.cp, null, false);
 }
 
 /* ═══ СТАРТ ═══ */
