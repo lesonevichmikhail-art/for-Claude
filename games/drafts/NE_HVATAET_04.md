@@ -47,3 +47,13 @@
 - 04_most_4.mp3 — Если все заняты — покажи игрушке. А взрослым — вечером.
 
 Опционально позже: названия предметов (slovo_kot.mp3 … slovo_zont.mp3), чтобы Топа называл открытую картинку.
+
+## Добавлено 2026-10-01: подсказка дыхания (общая для всех игр)
+Стоят внутри круга дыхания под Топой: вдох — нос, выдох — рот, конец — галочка. Пойдут в библиотеку для всех игр.
+Хвост: flat warm vector illustration, thick dark-brown outline, earthy warm palette (terracotta, ochre, olive green, cream, soft brown), rounded simple shapes, friendly calm expression, children's educational game asset, centered, transparent background, PNG, no text, no letters, no drop shadow, very round shapes, cute
+
+| Файл | Размер | Промпт (начало, потом хвост) |
+|---|---|---|
+| ikonka_dyhanie_nos.png | 512×512 | a child's cute nose breathing in, two soft air swirls flowing INTO the nostrils, close-up, only nose and cheeks, |
+| ikonka_dyhanie_rot.png | 512×512 | a child's cute mouth with rounded lips blowing out gently, soft air swirls flowing OUT of the mouth, close-up, only mouth and chin, |
+| ikonka_galochka.png | 512×512 | a big friendly olive-green check mark in a cream circle, |

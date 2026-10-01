@@ -64,10 +64,14 @@
               z-index:30;pointer-events:none;opacity:0}
 
   /* ---- Дыхание ---- */
-  .breathWrap{position:relative;width:min(60vmin,420px);height:min(60vmin,420px);display:flex;
+  .breathWrap{position:relative;width:min(78vmin,460px);height:min(78vmin,460px);display:flex;
               align-items:center;justify-content:center}
   .breathCircle{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,#f3d49a 0%,#e9b870 70%,#e0a43a 100%);opacity:.55}
-  .breathHero{position:relative;width:55%;height:55%}
+  .breathHero{position:relative;width:50%;height:50%;margin-bottom:22%}
+  /* подсказка «как дышать» внутри круга: нос на вдохе, рот на выдохе, галочка в конце */
+  .breathCue{position:absolute;left:50%;bottom:9%;width:26%;height:26%;margin-left:-13%}
+  .breathCue > div{position:absolute;inset:0;opacity:0}
+  .breathCue .ph,.breathCue .pic{width:100%;height:100%}
 
   /* ---- Игра ---- */
   .playHead{display:flex;align-items:center;gap:12px;width:100%;max-width:900px;justify-content:center;flex:none}
@@ -141,7 +145,7 @@
 
 <!-- breath · I блок: тонус и спокойствие -->
 <section class="screen" id="scBreath" data-luria="I блок: дыхание">
-  <div class="breathWrap"><div class="breathCircle" id="breathCircle"></div><div class="breathHero" id="breathHero"></div></div>
+  <div class="breathWrap"><div class="breathCircle" id="breathCircle"></div><div class="breathHero" id="breathHero"></div><div class="breathCue"></div></div>
 </section>
 
 <!-- offer · выбор тропы (поверх автоподстройки) -->
@@ -162,7 +166,7 @@
 
 <!-- finish · IV блок: спокойное завершение -->
 <section class="screen" id="scFinish" data-luria="IV блок: завершение">
-  <div class="breathWrap"><div class="breathCircle" id="finCircle"></div><div class="breathHero" id="finHero"></div></div>
+  <div class="breathWrap"><div class="breathCircle" id="finCircle"></div><div class="breathHero" id="finHero"></div><div class="breathCue"></div></div>
 </section>
 
 <!-- bridge · мостик ко взрослому -->
@@ -271,7 +275,10 @@ const CONFIG = {
     resume:   'ikonka_dalshe.png',
     tropaSame:'ikonka_tropa_rovnaya.png',
     tropaMount:'ikonka_tropa_gornaya.png',
-    mission:  'predmet_dva_noska.png'
+    mission:  'predmet_dva_noska.png',
+    nos:      'ikonka_dyhanie_nos.png',   // вдох носом
+    rot:      'ikonka_dyhanie_rot.png',   // выдох ртом
+    galochka: 'ikonka_galochka.png'       // дыхание закончено
   },
   bridge: {
     mission: 'Найдите дома две одинаковые вещи: два носка или две ложки.',
@@ -424,10 +431,18 @@ function show(id){
 }
 
 /* ================= ДЫХАНИЕ: одна функция двигает круг и героя ================= */
-function setBreath(circle,hero,k){ // k: 0 — выдох, 1 — вдох
+/* ОДНА функция двигает круг, героя и подсказку нос/рот — они не могут разойтись */
+function setBreath(circle,hero,k,mode){ // k: 0 — выдох, 1 — вдох; mode: 'in' | 'out' | 'done'
   const s=0.62+0.38*k;
   circle.style.transform='scale('+s+')';
   hero.style.transform='scale('+(0.9+0.12*k)+')';
+  const cue=circle.parentElement.querySelector('.breathCue');
+  if(cue){
+    if(!cue.firstChild) ['nos','rot','galochka'].forEach(n=>{ const d=document.createElement('div'); d.dataset.n=n; d.appendChild(picEl(CONFIG.icons[n])); cue.appendChild(d); });
+    const show=mode==='in'?'nos':mode==='out'?'rot':mode==='done'?'galochka':'';
+    cue.childNodes.forEach(d=>d.style.opacity= d.dataset.n===show?1:0);
+    cue.style.transform='scale('+(0.95+0.1*k)+')';
+  }
 }
 function breathe(circle,hero,cycles,done,voiced){ // voiced: сколько первых циклов озвучить «вдох / выдох» точно в такт
   const cyc=CONFIG.inhaleMs+CONFIG.exhaleMs;
@@ -436,13 +451,13 @@ function breathe(circle,hero,cycles,done,voiced){ // voiced: сколько пе
     if(!S.paused) t+=now-last;
     last=now;
     const c=Math.floor(t/cyc);
-    if(c>=cycles){ setBreath(circle,hero,0); done(); return; }
+    if(c>=cycles){ setBreath(circle,hero,0,'done'); T.later(()=>{ setBreath(circle,hero,0,''); done(); },900); return; }
     const p=t-c*cyc;
     let k, ph;
     if(p<CONFIG.inhaleMs){ k=easeInOut(p/CONFIG.inhaleMs); ph=c*2; }
     else { k=1-easeInOut((p-CONFIG.inhaleMs)/CONFIG.exhaleMs); ph=c*2+1; }
     if(ph!==phase && !S.paused){ phase=ph; if(ph%2) A.exhale(); else A.inhale(); if(c<(voiced||0)) say(ph%2?'vydoh':'vdoh'); }
-    setBreath(circle,hero,k);
+    setBreath(circle,hero,k,ph%2?'out':'in');
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -475,6 +490,7 @@ function startSession(){
     offersMade:0,failedBursts:0,inBurst:false,tropaChosen:null,levelDownNext:false,hardRound:false,log:[]});
   show('scBreath');
   putPic($('breathHero'),CONFIG.hero.calm);
+  setBreath($('breathCircle'),$('breathHero'),0,''); // сброс фазы при повторном заходе
   // сначала «Подыши со мной», потом круг; слова «вдох / выдох» звучат ровно с движением
   say('breath',()=>breathe($('breathCircle'),$('breathHero'),CONFIG.breathCycles,()=>nextRound(),CONFIG.breathVoicedCycles));
 }
