@@ -3,11 +3,10 @@
 Игра проходится целиком: вместо недостающего — серые заглушки с именем файла и «дзынь» с полоской текста.
 
 ## Картинки (PNG, прозрачный фон, Flat Warm Vector, толстый контур)
+Картинок не хватает: 0 (все PNG от Михаила вшиты 2026-10-01).
+
 | Имя | Размер | Что это |
 |---|---|---|
-| ikonka_tropa.png | 512×512 | **новое** — кнопка «горная тропа»: тропинка вверх на горку, флажок наверху |
-| geroy_myshka_prizemlenie.png | 1024×1024 | мышка приземлилась на клетку |
-| fon_park.png | 1920×1080 | парк с дорожкой (заставка, дыхание, финал) |
 
 Хвост промпта: flat warm vector illustration, thick dark-brown outline, earthy warm palette, rounded simple shapes, very round shapes, big eyes, chubby proportions, cute, transparent background, PNG, no text.
 
