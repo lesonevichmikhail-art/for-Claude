@@ -96,3 +96,4 @@
 
 ## Голос: «Навигатор» (golos/nav11), записано 2026-10-01
 11_vhod, 11_braslet, 11_lift, 11_lift_vniz, 11_podnimi_levuyu, 11_podnimi_pravuyu, 11_nalevo, 11_napravo, 11_pryamo, 11_naoborot, 11_obychno, 11_zapomni, 11_zerkalo, 11_zerkalo_pravaya, 11_most — тексты в `games/final/ZAPIS_navigator.md`. Нарезка по паузам и слогам (имя файла пришло стёртым), ждёт проверки на слух.
+- predmet_braslet — браслет-резинка с бусиной, светлый: игра перекрашивает его в цвет браслета ребёнка (Навигатор)
