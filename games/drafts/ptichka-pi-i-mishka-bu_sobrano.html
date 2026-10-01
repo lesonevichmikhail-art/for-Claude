@@ -329,13 +329,20 @@ function onTap(id) {
 // ============================================================
 //  Звук: только WebAudio, мягко, по actx.currentTime
 // ============================================================
-let actx = null, master = null, soundOn = true;
+let actx = null, master = null, reverb = null, soundOn = true;
 function audioInit() {
   if (!actx) {
     actx = new (window.AudioContext || window.webkitAudioContext)();
     master = actx.createGain(); master.gain.value = 0.8;
     const comp = actx.createDynamicsCompressor();
     master.connect(comp); comp.connect(actx.destination);
+    // «Глубина»: мягкое лесное эхо — свёртка с затухающим шумом (импульс создаётся в коде, без файлов)
+    const sec = 1.8, len = Math.floor(actx.sampleRate * sec), ir = actx.createBuffer(2, len, actx.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+    const conv = actx.createConvolver(); conv.buffer = ir;
+    const damp = actx.createBiquadFilter(); damp.type = 'lowpass'; damp.frequency.value = 3500;
+    reverb = actx.createGain(); reverb.gain.value = 0.28;
+    reverb.connect(conv); conv.connect(damp); damp.connect(master);
   }
   if (actx.state === 'suspended' && !clock.paused) actx.resume();
 }
@@ -345,24 +352,80 @@ function env(g, t0, peak, dur, att = 0.04, rel = 0.18) {
   g.gain.setValueAtTime(peak, t0 + Math.max(att, dur - rel));
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
 }
-// Голос героя. kind: 'bird' | 'bear'. sameTimbre — одинаковый тембр (различать только по высоте).
+// Голоса героев. Синтез по образу живых голосов (WebAudio, без файлов):
+//  Птичка — как песенка синицы «ци-тю, ци-тю»: короткая нота с лёгким спуском и нота пониже, чистый тон.
+//  Мишка — как довольное «урчание» медвежонка: низкий тёплый тон, пульсация, гласная «у-о», дыхание.
+// Высота загадки (freq) задаёт центр голоса; живые 4–5 кГц синицы опущены вниз, чтобы звук был мягким.
+// sameTimbre — одинаковый ровный тембр на старших уровнях: различать только по высоте.
+function out(node, dry = 1, wet = 1) { // в зал: сухой сигнал + эхо
+  const d = actx.createGain(); d.gain.value = dry; node.connect(d); d.connect(master);
+  const w = actx.createGain(); w.gain.value = wet; node.connect(w); w.connect(reverb);
+}
+function birdVoice(freq, t0, dur) {
+  const note = 0.13, gap = 0.05, phrase = note * 2 + gap * 2;
+  const n = Math.max(1, Math.floor(dur / phrase));
+  const bus = actx.createGain(); bus.gain.value = 1; out(bus, 1, 1.1);
+  for (let k = 0; k < n; k++) {
+    [[1.12, 1.0, 0.17], [0.86, 0.84, 0.13]].forEach(([fa, fb, peak], j) => {
+      const t = t0 + k * phrase + j * (note + gap);
+      const o = actx.createOscillator(), o2 = actx.createOscillator(), g = actx.createGain(), g2 = actx.createGain();
+      o.type = 'sine'; o2.type = 'sine';
+      o.frequency.setValueAtTime(freq * fa, t); o.frequency.exponentialRampToValueAtTime(freq * fb, t + note);
+      o2.frequency.setValueAtTime(freq * fa * 2, t); o2.frequency.exponentialRampToValueAtTime(freq * fb * 2, t + note);
+      g2.gain.value = 0.12; // лёгкая вторая гармоника — «звон»
+      o.connect(g); o2.connect(g2); g2.connect(g); g.connect(bus);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + 0.015);
+      g.gain.exponentialRampToValueAtTime(peak * 0.6, t + note * 0.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + note);
+      o.start(t); o2.start(t); o.stop(t + note + 0.02); o2.stop(t + note + 0.02);
+    });
+  }
+}
+function bearVoice(freq, t0, dur) {
+  const bus = actx.createGain(); out(bus, 1, 0.8);
+  // голос: пила → формантные фильтры «у-о» → тёплый
+  const o = actx.createOscillator(); o.type = 'sawtooth';
+  o.frequency.setValueAtTime(freq * 1.04, t0); o.frequency.exponentialRampToValueAtTime(freq * 0.96, t0 + dur); // лёгкий спад, как вздох
+  const vib = actx.createOscillator(), vg = actx.createGain(); vib.frequency.value = 4; vg.gain.value = freq * 0.01; vib.connect(vg); vg.connect(o.frequency);
+  const f1 = actx.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = 420; f1.Q.value = 3;
+  const f2 = actx.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 850; f2.Q.value = 4;
+  const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.max(700, freq * 4);
+  const v = actx.createGain(); v.gain.value = 1;
+  o.connect(lp); lp.connect(v); o.connect(f1); f1.connect(v); o.connect(f2); f2.connect(v);
+  // подголос на октаву ниже — «грудь» медвежонка
+  const sub = actx.createOscillator(), sg = actx.createGain(); sub.type = 'sine'; sub.frequency.value = freq / 2; sg.gain.value = 0.5;
+  sub.connect(sg); sg.connect(v);
+  // пульсация «урчания», как у довольного малыша
+  const am = actx.createGain(), lfo = actx.createOscillator(), lg = actx.createGain();
+  am.gain.value = 0.75; lfo.frequency.value = 22; lg.gain.value = 0.25; lfo.connect(lg); lg.connect(am.gain);
+  v.connect(am);
+  // дыхание
+  const nb = actx.createBuffer(1, Math.floor(actx.sampleRate * dur), actx.sampleRate), nd = nb.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  const ns = actx.createBufferSource(); ns.buffer = nb;
+  const nf = actx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 600; nf.Q.value = 0.8;
+  const ng = actx.createGain(); ng.gain.value = 0.05; ns.connect(nf); nf.connect(ng); ng.connect(am);
+  const g = actx.createGain(); am.connect(g); g.connect(bus);
+  env(g, t0, 0.2, dur, 0.09, 0.3);
+  [o, vib, sub, lfo].forEach(x => { x.start(t0); x.stop(t0 + dur + 0.05); }); ns.start(t0);
+}
+function evenVoice(freq, t0, dur) { // ровный тембр для старших уровней: одинаковый у обоих героев
+  const bus = actx.createGain(); out(bus, 1, 0.9);
+  const o = actx.createOscillator(), o2 = actx.createOscillator(), g = actx.createGain(), g2 = actx.createGain();
+  o.type = 'triangle'; o.frequency.value = freq; o2.type = 'sine'; o2.frequency.value = freq * 2.001; g2.gain.value = 0.15;
+  const vib = actx.createOscillator(), vg = actx.createGain(); vib.frequency.value = 5; vg.gain.value = freq * 0.008;
+  vib.connect(vg); vg.connect(o.frequency);
+  o.connect(g); o2.connect(g2); g2.connect(g); g.connect(bus);
+  env(g, t0, 0.2, dur, 0.06, 0.25);
+  [o, o2, vib].forEach(x => { x.start(t0); x.stop(t0 + dur + 0.05); });
+}
 function voice(kind, freq, ms, sameTimbre) {
   if (!soundOn || !actx) return;
   const t0 = actx.currentTime + 0.03, dur = ms / 1000;
-  const osc = actx.createOscillator(), g = actx.createGain(), lp = actx.createBiquadFilter();
-  lp.type = 'lowpass';
-  if (sameTimbre) { osc.type = 'triangle'; lp.frequency.value = 2400; }
-  else if (kind === 'bird') { osc.type = 'triangle'; lp.frequency.value = 3200; }
-  else { osc.type = 'sawtooth'; lp.frequency.value = freq * 3; }
-  osc.frequency.setValueAtTime(freq, t0);
-  // лёгкое вибрато — живой голос
-  const lfo = actx.createOscillator(), lg = actx.createGain();
-  lfo.frequency.value = kind === 'bird' && !sameTimbre ? 6 : 4.5;
-  lg.gain.value = freq * (kind === 'bird' && !sameTimbre ? 0.025 : 0.012);
-  lfo.connect(lg); lg.connect(osc.frequency);
-  osc.connect(lp); lp.connect(g); g.connect(master);
-  env(g, t0, kind === 'bear' && !sameTimbre ? 0.22 : 0.2, dur, 0.06, 0.25);
-  osc.start(t0); lfo.start(t0); osc.stop(t0 + dur + 0.05); lfo.stop(t0 + dur + 0.05);
+  if (sameTimbre) evenVoice(freq, t0, dur);
+  else if (kind === 'bird') birdVoice(freq, t0, dur);
+  else bearVoice(freq, t0, dur);
 }
 // Фраза голосом через WebAudio. Возвращает длительность в мс (0, если записи нет).
 const voiceBuf = {};
@@ -375,19 +438,22 @@ async function say(key) {
       voiceBuf[key] = await actx.decodeAudioData(u.buffer);
     }
     const src = actx.createBufferSource(); src.buffer = voiceBuf[key];
-    src.connect(master); src.start(actx.currentTime + 0.02);
+    src.connect(master); const vw = actx.createGain(); vw.gain.value = 0.12; src.connect(vw); vw.connect(reverb); src.start(actx.currentTime + 0.02);
     return voiceBuf[key].duration * 1000 + 150;
   } catch (e) { return 0; }
 }
 async function sayWait(key) { const ms = await say(key); if (ms) await wait(ms); }
 
-function chime() { // удача: два тихих колокольчика вверх
+function chime() { // удача: два тёплых колокольчика вверх, с эхом
   if (!soundOn || !actx) return;
   [523.25, 659.25].forEach((f, i) => {
-    const t0 = actx.currentTime + 0.03 + i * 0.14;
-    const o = actx.createOscillator(), g = actx.createGain();
-    o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(master);
-    env(g, t0, 0.12, 0.45, 0.01, 0.35); o.start(t0); o.stop(t0 + 0.5);
+    const t0 = actx.currentTime + 0.03 + i * 0.15;
+    const bus = actx.createGain(); out(bus, 1, 1.2);
+    [[1, 0.12], [2.76, 0.03], [5.4, 0.012]].forEach(([m, peak]) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine'; o.frequency.value = f * m; o.connect(g); g.connect(bus);
+      env(g, t0, peak, m === 1 ? 0.9 : 0.4, 0.008, m === 1 ? 0.8 : 0.35); o.start(t0); o.stop(t0 + 1);
+    });
   });
 }
 function tick() { // нейтральный деревянный щелчок (кнопки, промах) — не грустный
