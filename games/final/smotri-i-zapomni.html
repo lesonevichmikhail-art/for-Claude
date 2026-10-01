@@ -58,11 +58,11 @@
   #breathIcons > * { width: min(24vmin, 160px); height: min(24vmin, 160px); transition: none; }
 
   /* карточки */
-  .row { display: flex; flex-wrap: wrap; justify-content: center; gap: 2.5vmin; max-width: 96vw; }
+  .row { display: grid; justify-content: center; gap: 2.5vmin; max-width: 96vw; }
   .card {
     width: var(--cs); height: var(--cs); border-radius: 20px; border: 4px solid var(--line);
     background: var(--card); display: flex; align-items: center; justify-content: center;
-    cursor: pointer; padding: 6%; position: relative;
+    cursor: pointer; padding: 8px; position: relative;
   }
   .card > * { width: 100%; height: 100%; }
   .card.found { background: #f3ead0; border-color: var(--olive); box-shadow: 0 0 0 6px rgba(138,154,91,.35); }
@@ -87,7 +87,7 @@
 
   /* выбор тропы */
   .paths { display: flex; gap: 6vmin; flex-wrap: wrap; justify-content: center; }
-  .path { width: min(36vmin, 260px); height: min(36vmin, 260px); border-radius: 24px; border: 4px solid var(--line); background: var(--card); padding: 4%; cursor: pointer; }
+  .path { width: min(36vmin, 260px); height: min(36vmin, 260px); border-radius: 24px; border: 4px solid var(--line); background: var(--card); padding: 10px; cursor: pointer; }
   .path > * { width: 100%; height: 100%; }
   #badge { width: min(16vmin, 120px); height: min(16vmin, 120px); }
 
@@ -164,6 +164,7 @@
     <div class="phrase">Ты запомнил!</div>
     <div id="badge"></div>
     <div class="phrase" id="bridge" style="font-size:clamp(18px,3.2vmin,26px);font-weight:600"></div>
+    <div class="phrase" id="transfer" style="font-size:clamp(18px,3.2vmin,26px);font-weight:600"></div>
     <button class="bigbtn" id="btnAgain">Ещё</button>
   </section>
 </div>
@@ -189,6 +190,8 @@
     </ul>
     <h3>Если трудно</h3>
     <p>Игра сама подсветит нужные картинки и покажет дольше. Можно выбрать уровень пониже в настройках ниже. Если ребёнок возбуждён — повторите дыхание (кнопка «Домой» → «Начнём»).</p>
+    <h3>Как это помогает в школе</h3>
+    <p>Ученик держит в голове то, что увидел на доске, пока переносит в тетрадь, и замечает мелкие различия (буквы, цифры, детали картинки). Дома: попросите ребёнка посмотреть на стол, закрыть глаза и назвать 3 вещи. Эффект не замерен.</p>
     <h3>Сколько играть</h3>
     <p>Одно занятие — около 5–7 минут (8 раундов). Лучше каждый день понемногу.</p>
     <h3>Тропа вызова</h3>
@@ -300,7 +303,10 @@ const CONFIG = {
     noOfferInLast: 2         // раундов в конце без приглашения
   },
 
-  text: { bridge: 'Покажи маме, какую тропу ты выбрал' }
+  text: {
+    bridge: 'Покажи маме, какую тропу ты выбрал',
+    transfer: 'Дома: закрой глаза и назови 3 вещи на столе'
+  }
 };
 
 /* =========================================================
@@ -431,11 +437,14 @@ async function breathe(cycles, run) {
 /* =========================================================
    РАУНД
    ========================================================= */
-function cardSize(count) {
-  const cols = count <= 4 ? Math.min(count, 4) : count <= 6 ? 3 : count <= 8 ? 4 : 3;
+function layoutRow(row, count) {
+  // раскладка от экрана: в альбомной ориентации не больше 2 рядов, в портретной не больше 4 колонок
+  const land = innerWidth > innerHeight;
+  const cols = land ? Math.ceil(count / (count > 4 ? 2 : 1))
+                    : (count <= 2 ? count : count <= 4 ? 2 : count <= 6 ? 3 : count <= 8 ? 4 : 3);
   const rows = Math.ceil(count / cols);
-  const byW = 88 / cols, byH = 55 / rows;
-  return `min(${byW}vw, ${byH}vh, 190px)`;
+  row.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+  row.style.setProperty('--cs', `min(${88 / cols}vw, ${(land ? 46 : 52) / rows}vh, 190px)`);
 }
 
 function buildRound(lv) {
@@ -459,7 +468,7 @@ async function playRound(run) {
 
   // показ
   show('scrShow');
-  const row = $('showRow'); row.innerHTML = ''; row.style.setProperty('--cs', cardSize(targets.length));
+  const row = $('showRow'); row.innerHTML = ''; layoutRow(row, targets.length);
   targets.forEach(t => { const c = document.createElement('div'); c.className = 'card'; c.appendChild(makePic(t)); row.appendChild(c); });
   Sound.phase();
   await Clock.wait(S.support ? lv.showMs * CONFIG.adapt.supportShowFactor : lv.showMs);
@@ -472,7 +481,7 @@ async function playRound(run) {
 
   // поиск
   show('scrFind');
-  const fr = $('findRow'); fr.innerHTML = ''; fr.style.setProperty('--cs', cardSize(field.length));
+  const fr = $('findRow'); fr.innerHTML = ''; layoutRow(fr, field.length);
   let found = 0, missesThisRound = 0, done = false;
   await new Promise(resolve => {
     field.forEach(name => {
@@ -617,6 +626,7 @@ async function finish(run) {
     badge.firstChild.style.width = badge.firstChild.style.height = '100%';
     $('bridge').textContent = CONFIG.text.bridge;
   } else $('bridge').textContent = '';
+  $('transfer').textContent = CONFIG.text.transfer;
 }
 
 function goHome() {
