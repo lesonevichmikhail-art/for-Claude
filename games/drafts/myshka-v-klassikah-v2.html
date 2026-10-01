@@ -61,7 +61,6 @@ h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 #scr-breath,#scr-finish{flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--vh,1vh)*2)}
 .bwrap{display:flex;align-items:center;justify-content:center;gap:4vw;flex:1;min-height:0;width:100%}
 .bcircle{--d:min(46vw,calc(var(--vh,1vh)*46),300px);width:var(--d);height:var(--d);border-radius:50%;background:radial-gradient(circle at 42% 36%,#FFE9E2,#F4B9A4);box-shadow:0 0 0 10px rgba(244,185,164,.2);position:relative;flex:none;will-change:transform}
-.bcircle::after{content:"";position:absolute;left:50%;bottom:-9%;width:3px;height:12%;background:#B79B86;transform:translateX(-50%)}
 .bcircle .bi{position:absolute;inset:24%}
 .bcircle .bi img{width:100%;height:100%}
 .breg{height:min(calc(var(--vh,1vh)*30),200px);width:min(28vw,170px);display:flex;align-items:flex-end;justify-content:center;will-change:transform;transform-origin:50% 100%}
@@ -277,8 +276,14 @@ const CONTENT = {
     {t:'15',w:'fifteen',v:'en_fifteen',r:'пятнадцать',vr:'ru_15'},{t:'16',w:'sixteen',v:'en_sixteen',r:'шестнадцать',vr:'ru_16'},{t:'17',w:'seventeen',v:'en_seventeen',r:'семнадцать',vr:'ru_17'},{t:'18',w:'eighteen',v:'en_eighteen',r:'восемнадцать',vr:'ru_18'},
     {t:'19',w:'nineteen',v:'en_nineteen',r:'девятнадцать',vr:'ru_19'},{t:'20',w:'twenty',v:'en_twenty',r:'двадцать',vr:'ru_20'}
   ],
-  /* классики: 10 клеток. s — ряд от начала (1–8), p — 0 целая клетка, 1/2 — левая/правая половинка пары */
-  court: [ {s:1,p:0},{s:2,p:0},{s:3,p:0},{s:4,p:1},{s:4,p:2},{s:5,p:0},{s:6,p:1},{s:6,p:2},{s:7,p:0},{s:8,p:0} ],
+  /* модули счёта: свои классики на каждый. s — ряд от начала, p — 0 целая клетка, 1/2 — половинки пары.
+     base — с какого числа клетки (модуль 20: на клетках 11–20, шаг 8 — весь путь 1 → 20) */
+  modules: {
+    5:  { base:0,  rows:4, court:[{s:1,p:0},{s:2,p:0},{s:3,p:0},{s:4,p:1},{s:4,p:2}] },
+    10: { base:0,  rows:8, court:[{s:1,p:0},{s:2,p:0},{s:3,p:0},{s:4,p:1},{s:4,p:2},{s:5,p:0},{s:6,p:1},{s:6,p:2},{s:7,p:0},{s:8,p:0}] },
+    12: { base:0,  rows:9, court:[{s:1,p:0},{s:2,p:0},{s:3,p:0},{s:4,p:1},{s:4,p:2},{s:5,p:0},{s:6,p:1},{s:6,p:2},{s:7,p:0},{s:8,p:0},{s:9,p:1},{s:9,p:2}] },
+    20: { base:10, rows:8, court:[{s:1,p:0},{s:2,p:0},{s:3,p:0},{s:4,p:1},{s:4,p:2},{s:5,p:0},{s:6,p:1},{s:6,p:2},{s:7,p:0},{s:8,p:0}] }
+  },
   adult3: {
     ru:['Сегодня ребёнок считал по-русски вперёд и назад и прыгал в такт.',
         'Вечером посчитайте ступеньки: от 3 до 7 и обратно.',
@@ -292,14 +297,14 @@ const CONTENT = {
      dir: 1 вперёд, -1 назад; seg — отрезок не с единицы; to20 — до двадцати (8+ лет).
      Шаг 9 — смешанный счёт (один по-русски, два по-английски) — НЕ в лестнице: только «горная тропа» по желанию ребёнка. */
   ladder: [null,
-    {k:'listen',dir:1, name:'слушать 1–10'},
-    {k:'seq',dir:1,    name:'сам говорит 1–10'},
-    {k:'seq',dir:1,seg:true, name:'от числа до числа (3 → 8)'},
-    {k:'seq',dir:-1,   name:'назад 10 → 1'},
-    {k:'seq',dir:-1,seg:true, name:'назад от числа до числа (8 → 3)'},
+    {k:'listen',dir:1, name:'слушать по порядку'},
+    {k:'seq',dir:1,    name:'сам говорит'},
+    {k:'seq',dir:1,seg:true, name:'от числа до числа вперёд'},
+    {k:'seq',dir:-1,   name:'назад'},
+    {k:'seq',dir:-1,seg:true, name:'от числа до числа назад'},
     {k:'hidden',dir:1, name:'какое число спряталось'},
     {k:'find',         name:'«Прыгни на…»'},
-    {k:'seq',dir:1,to20:true, name:'до двадцати'}
+    {k:'seq',dir:1,to20:true, name:'весь путь 1 → 20 (только модуль 20)'}
   ]
 };
 
@@ -371,7 +376,7 @@ const CONFIG = {
   id:'mysh06',
   draft: Object.keys(VOICE).some(k => !ZVUK[k]),     // нет хоть одного mp3 — черновой голос
   layers:{ junior:[1,5], senior:[2,8] },                // автоподъём: junior до шага 5 (консилиум)
-  segLen:{ junior:[3,5], senior:[5,7] },               // длина отрезка «от … до …», клеток
+  segLen:{ junior:[3,5], senior:[5,7] },               // в модуле 5 отрезок короче: 2–3 клетки               // длина отрезка «от … до …», клеток
   mixLen:[5,10],                                       // смешанный счёт: сначала 1–5, после 2 удачных троп — 1–10
   tropaWaitMs:7000,
   roundsOptions:[2,3,4],
@@ -481,7 +486,7 @@ const S = {
   mpos:-1, off:0, hidden:[], maxN:0, anim:null,
   log:null
 };
-const DEF = { age:'junior', lang:'ru', mixAllow:false, mixWins:0, mode:'auto', startLevel:1, level:0, sound:true, draftBar:true, rounds:3, sayS:6 };
+const DEF = { age:'junior', lang:'ru', module:10, mixAllow:false, mixWins:0, mode:'auto', startLevel:1, level:0, sound:true, draftBar:true, rounds:3, sayS:6 };
 function loadSet(){
   let s={}; try{ s=JSON.parse(localStorage.getItem(CONFIG.id+'_set')||'{}')||{}; }catch(e){ s={}; }
   S.set=Object.assign({},DEF,s);
@@ -489,6 +494,8 @@ function loadSet(){
   if(S.set.age==='baby') S.set.age='junior';                       // слой baby влит в junior
   const ql=(location.search.match(/[?&]lang=(ru|en)/)||[])[1]; if(ql) S.set.lang=ql;
   if(/[?&]mix=1/.test(location.search)) S.set.mixAllow=true;
+  const qm=(location.search.match(/[?&]mod=(5|10|12|20)/)||[])[1]; if(qm) S.set.module=+qm;
+  if(!CONTENT.modules[S.set.module]) S.set.module=10;
   A.on=!!S.set.sound;
 }
 function saveSet(){ try{ localStorage.setItem(CONFIG.id+'_set',JSON.stringify(S.set)); }catch(e){} }
@@ -504,9 +511,11 @@ function pic(key, word){
 }
 /* позы мышки: нет своей позы — берём прыжок (пока все позы — одна временная картинка) */
 function mousePic(pose){ const k='geroy_myshka_'+pose; return pic(ASSETS[k]?k:'geroy_myshka_pryzhok','мышка'); }
+const MOD=()=>CONTENT.modules[S.set.module]||CONTENT.modules[10];
+const NC=()=>cells.length;                                           // клеток в классиках; NC() — площадка «финиш»
 function layerRange(){
-  const r=CONFIG.layers[S.set.age]||[1,5];
-  if(S.set.mode==='manual'){ const s=+S.set.startLevel; return [Math.min(r[0],s),Math.max(r[1],s)]; }
+  const r0=CONFIG.layers[S.set.age]||[1,5], top=+S.set.module===20?8:7, r=[Math.min(r0[0],top),Math.min(r0[1],top)];
+  if(S.set.mode==='manual'){ const s=Math.min(top,+S.set.startLevel); return [Math.min(r[0],s),Math.max(r[1],s)]; }
   return r;
 }
 const clamp=(v,r)=>Math.max(r[0],Math.min(r[1],v));
@@ -600,24 +609,28 @@ function breathe(ep, cycles, circle, nose, mouth, extra){
 
 /* ================= КЛАССИКИ ================= */
 const cells=[];
+let courtRO=null;
 function buildCourt(){
   const c=$('#court');
-  CONTENT.court.forEach((p,i)=>{
+  cells.forEach(b=>b.remove()); cells.length=0;
+  MOD().court.forEach((p,i)=>{
     const b=document.createElement('button'); b.className='cell'; b.dataset.i=i;
     b.addEventListener('pointerdown',e=>{ e.preventDefault(); if(S.sayMode) return; A.tap(); onPick({c:i}); });
     c.insertBefore(b,$('#mouse')); cells.push(b);
   });
-  if(window.ResizeObserver) new ResizeObserver(()=>layoutCourt()).observe(c);
+  if(window.ResizeObserver && !courtRO){ courtRO=new ResizeObserver(()=>layoutCourt()); courtRO.observe(c); }
 }
 function isLand(){ return window.matchMedia && matchMedia('(orientation:landscape)').matches; }
 /* раскладка: книжный — снизу вверх, альбом — слева направо. Пары 4–5 и 7–8 рядом */
 function layoutCourt(){
-  const land=isLand(), N=8;
+  const land=isLand(), N=MOD().rows, c0=$('#court');
+  if(land){ c0.style.gridTemplateRows='1fr 1fr'; c0.style.gridTemplateColumns='.3fr repeat('+N+',1fr) .3fr'; c0.style.aspectRatio=(N*0.35).toFixed(2)+'/1'; }
+  else    { c0.style.gridTemplateColumns='1fr 1fr'; c0.style.gridTemplateRows='.3fr repeat('+N+',1fr) .3fr'; c0.style.aspectRatio='1/'+Math.max(1.6,N*0.325).toFixed(2); }
   const place=(el,s,p)=>{
     if(land){ el.style.gridColumn=String(s+1); el.style.gridRow = p===0 ? '1 / 3' : String(p); }
     else    { el.style.gridRow=String(N+2-s); el.style.gridColumn = p===0 ? '1 / 3' : String(p); }
   };
-  CONTENT.court.forEach((p,i)=>place(cells[i],p.s,p.p));
+  MOD().court.forEach((p,i)=>place(cells[i],p.s,p.p));
   place($('#padS'),0,0); place($('#padE'),N+1,0);
   const r=cells[0].getBoundingClientRect(), u=land?r.width:r.height, cross=land?$('#court').clientHeight:$('#court').clientWidth;
   if(!u) return;
@@ -630,7 +643,7 @@ function layoutCourt(){
 }
 addEventListener('resize',()=>{ if(S.screen==='play'||S.screen==='learn') layoutCourt(); });
 function center(pos){
-  const el = pos<0 ? $('#padS') : pos>9 ? $('#padE') : cells[pos];
+  const el = pos<0 ? $('#padS') : pos>=NC() ? $('#padE') : cells[pos];
   const c=$('#court').getBoundingClientRect(), r=el.getBoundingClientRect();
   return { x:r.left-c.left+r.width/2, y:r.top-c.top+r.height/2 };
 }
@@ -644,7 +657,7 @@ async function hop(ep,pos){
   const dur=Math.min(900, CONFIG.hopMs+dist/u*50)*(reduce?1.3:1), lift=(reduce?0.35:0.8)*u+dist*0.12;
   const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
   hidePop(); setMousePose('pryzhok');
-  A.hop(pos<0?0:pos>9?9:pos);
+  A.hop(pos<0?0:Math.min(pos,NC()-1));
   const m=$('#mouse');
   m.style.transform=T(b); S.mpos=pos;
   if(m.animate){
@@ -688,7 +701,7 @@ function posPop(){
 }
 function hidePop(){ $('#numPop').classList.remove('on'); }
 function renderCourt(){
-  setDigits(0,[]); glow(-1); hidePop(); setMousePose('prizemlenie');
+  setDigits(MOD().base,[]); glow(-1); hidePop(); setMousePose('prizemlenie');
   layoutCourt(); placeMouse(-1);
 }
 
@@ -735,6 +748,7 @@ FLOW.intro = async ep=>{
 function startGame(){
   A.ensure(); A.tap();
   S.support=false; S.hardRun=0; S.cleanRun=0; S.log=newLog(); S.prevHard=false; S.passHard=false; S.maxN=0;
+  if(S.builtMod!==+S.set.module){ buildCourt(); S.builtMod=+S.set.module; S.learnSeen=false; }   // модуль сменился — новые классики и снова показ
   const r=layerRange(), m=S.set.mode;
   if(m==='easy'){ S.level=r[0]; S.support=true; }
   else if(m==='hard'){ S.level=r[1]; }
@@ -769,11 +783,13 @@ FLOW.learn = async ep=>{
   await sleep(300);
   S.lastInstr=['ob_poslushay'];
   await say(ep,'ob_poslushay');
-  for(let i=0;i<10;i++){
-    await hop(ep,i); cells[i].classList.add('done'); showPop(CONTENT.items[i]);
-    await say(ep, word(CONTENT.items[i],S.set.lang).v); await sleep(250);
+  const b0=MOD().base;
+  for(let i=0;i<NC();i++){
+    const it=CONTENT.items[b0+i];
+    await hop(ep,i); cells[i].classList.add('done'); showPop(it);
+    await say(ep, word(it,S.set.lang).v); await sleep(250);
   }
-  await hop(ep,10);
+  await hop(ep,NC());
   S.learnSeen=true;
   go('play');
 };
@@ -798,7 +814,7 @@ FLOW.play = async ep=>{
   /* «горная тропа»: смешанный счёт — только если взрослый разрешил и только по желанию ребёнка */
   if(S.set.mixAllow && await offerTropa(ep)){
     S.passLang='mix'; S.shifted=true; S.log.levels.push('тропа: смешанный');
-    const n=S.set.mixWins>=2 ? CONFIG.mixLen[1] : CONFIG.mixLen[0];
+    const n=Math.min(NC(), S.set.mixWins>=2 ? CONFIG.mixLen[1] : CONFIG.mixLen[0]);
     const ok=await passSeq(ep, {k:'seq',dir:1,mix:n}, true);
     if(ok){ S.set.mixWins++; saveSet(); }
     S.passLang=S.set.lang;
@@ -807,7 +823,7 @@ FLOW.play = async ep=>{
 };
 /* предложение тропы: кнопка-картинка, ждём 7 с; не нажал — просто идём к финалу, без потерь */
 async function offerTropa(ep){
-  S.lock=true; hidePop(); setDigits(0,[]); placeMouse(-1);
+  S.lock=true; hidePop(); setDigits(MOD().base,[]); placeMouse(-1);
   const b=$('#tropaBtn'); b.innerHTML=pic('ikonka_tropa','тропа'); b.classList.remove('hide');
   let pick=false;
   b.onpointerdown=e=>{ e.preventDefault(); if(RT.paused) return; A.tap(); pick=true; if(S.resolveTap) S.resolveTap({tropa:true}); };
@@ -821,26 +837,26 @@ async function offerTropa(ep){
 
 /* один проход по клеткам: вперёд или назад, весь ряд или отрезок «от … до …», один язык или смешанный (тропа) */
 function segRange(dir){
-  const r=CONFIG.segLen[S.set.age]||[3,5];
+  const n=NC(), r0=CONFIG.segLen[S.set.age]||[3,5], r=n<=5?[2,3]:[Math.min(r0[0],n-3),Math.min(r0[1],n-3)];
   const len=r[0]+Math.floor(Math.random()*(r[1]-r[0]+1));
-  const a=1+Math.floor(Math.random()*(9-len));              // не с единицы и не до десяти: середина ряда
+  const a=1+Math.floor(Math.random()*(n-1-len));            // не с первой и не до последней клетки: середина ряда
   const from=a, to=a+len-1;                                  // индексы клеток
   return dir>0 ? [from,to] : [to,from];
 }
 async function passSeq(ep, st, last){
-  const back=st.dir<0, offs = st.to20 ? [0,10] : [0];
+  const back=st.dir<0, n=NC(), offs = st.to20 ? [0,10] : [MOD().base];
   let clean=true;
   for(let h=0; h<offs.length; h++){
     const off=offs[h];
     let hid=[], seg=null, order;
-    if(st.k==='hidden'){ const n=CONFIG.hidden[S.set.age]||1; const pool=shuffle([2,3,4,5,6,7,8]); for(const x of pool){ if(hid.length<n && !hid.some(y=>Math.abs(y-x)<2)) hid.push(x); } }
+    if(st.k==='hidden'){ const n=CONFIG.hidden[S.set.age]||1; const pool=shuffle(Array.from({length:Math.max(1,n-3)},(_,j)=>j+2)); for(const x of pool){ if(hid.length<n && !hid.some(y=>Math.abs(y-x)<2)) hid.push(x); } }
     if(st.seg){ seg=segRange(st.dir); order=[]; for(let i=seg[0]; back? i>=seg[1] : i<=seg[1]; i+=st.dir) order.push(i); }
     else if(st.mix){ order=[]; for(let i=0;i<st.mix;i++) order.push(i); }
-    else order = back ? [9,8,7,6,5,4,3,2,1,0] : [0,1,2,3,4,5,6,7,8,9];
+    else { order=[]; for(let i=0;i<n;i++) order.push(back?n-1-i:i); }
     setDigits(off, hid, seg, st.mix||0); glow(-1); hidePop();
     const startPos = order[0]-st.dir;                         // мышка стоит перед первой клеткой
     if(h>0){ S.lock=true; await hop(ep,-1); }
-    else placeMouse(back ? (startPos>9?10:startPos) : (startPos<0?-1:startPos));
+    else placeMouse(back ? (startPos>n-1?n:startPos) : (startPos<0?-1:startPos));
     S.lock=true;
     if(st.seg){
       const a=CONTENT.items[off+order[0]], b=CONTENT.items[off+order[order.length-1]];
@@ -856,7 +872,7 @@ async function passSeq(ep, st, last){
     }
     S.lock=true; hidePop();
     const endPos=order[order.length-1]+st.dir;
-    await hop(ep, endPos<0?-1:endPos>9?10:endPos);
+    await hop(ep, endPos<0?-1:endPos>n-1?n:endPos);
   }
   return clean;
 }
@@ -911,12 +927,12 @@ async function sayPhase(ep, wd, ask, onEcho){
 
 /* «Прыгни на…» — найти клетку по слову */
 async function passFind(ep, last){
-  setDigits(0,[]); glow(-1); hidePop(); placeMouse(-1);
-  const n=CONFIG.findLen[S.set.age]||5;
-  let pool=shuffle([0,1,2,3,4,5,6,7,8,9]).slice(0,n);
+  const b0=MOD().base; setDigits(b0,[]); glow(-1); hidePop(); placeMouse(-1);
+  const n=Math.min(NC(), CONFIG.findLen[S.set.age]||5);
+  let pool=shuffle(Array.from({length:NC()},(_,j)=>j)).slice(0,n);
   for(let k=0;k<pool.length;k++){
     chk(ep);
-    const i=pool[k], it=CONTENT.items[i], wd=word(it,langAt(0)), easyEnd=last && k===pool.length-1 && S.prevHard;
+    const i=pool[k], it=CONTENT.items[b0+i], wd=word(it,langAt(0)), easyEnd=last && k===pool.length-1 && S.prevHard;
     let miss=0, hinted=false; S.want=i; S.pending=null;
     glow(S.support||easyEnd ? i : -1);
     S.lock=false;
@@ -937,7 +953,7 @@ async function passFind(ep, last){
     await say(ep, wd.v);
     afterTask(miss, hinted, performance.now()-t0<CONFIG.fastMs*2);
   }
-  S.lock=true; hidePop(); await hop(ep,10);
+  S.lock=true; hidePop(); await hop(ep,NC());
 }
 
 /* ---- IV блок: папа кружит мышку, Goodbye, выдох, мостик ---- */
@@ -947,7 +963,7 @@ function trailInto(el, n){
 }
 FLOW.finish = async ep=>{
   S.lock=true;
-  const top=Math.max(10,S.maxN);
+  const top=Math.max(MOD().base+NC(),S.maxN);
   trailInto($('#bigtrail'), top);
   const sb=$('#spinBox');
   if(ASSETS.geroy_papa_mysh_kruzhit) sb.innerHTML='<div class="papa" style="width:100%" id="spinOne">'+pic('geroy_papa_mysh_kruzhit','папа кружит мышку')+'</div>';
@@ -967,7 +983,7 @@ FLOW.bridge = async ep=>{
   S.lock=true;
   $('#brReg').innerHTML=mousePic('privet');
   $('#brMost').innerHTML=pic('geroy_most_nesi_telefon','неси телефон взрослому');
-  trailInto($('#brTrail'), Math.max(10,S.maxN));
+  trailInto($('#brTrail'), Math.max(MOD().base+NC(),S.maxN));
   $('#brCard').innerHTML='<span class="lbl">Для взрослого</span>'+CONTENT.adult3[S.set.lang].map(t=>'<p>'+t+'</p>').join('');
   const coarse = window.matchMedia && matchMedia('(pointer:coarse)').matches;
   await sleep(500);
@@ -993,6 +1009,7 @@ function sheetHTML(){
   '<p>Речь игра не распознаёт — слышите вы. Кнопка «сказал» не проверяет ответ: через '+st.sayS+' с игра сама скажет слово, как эхо.</p>'+
   '<p>Ошибок в игре нет: в отрезке «от … до …» первая клетка светится. Не та клетка — мышка оглядывается, нужная клетка светится. Второй раз — ещё и звучит слово.</p>'+
   '<p><b>Подстройка сама.</b> Два трудных задания подряд — опора: нужная клетка светится сразу. Ещё два трудных — шаг ниже. Два чистых подряд — опора уходит, ещё два — шаг выше. Шаг меняется не чаще раза за проход. Кнопка-ухо не считается.</p>'+
+  '<p><b>Модули</b> — ступени математики: до 5 (если ребёнок совсем плохо считает: закрепляем основу) → до 10 → до 12 (11 и 12 по-английски особые слова: eleven, twelve) → 11–20 (8+ лет, после уверенного до 12). На каждый модуль свои классики. Переходить, когда ребёнок спокойно проходит шаги 1–5 своего модуля.</p>'+
   '<p>Шаги: '+CONTENT.ladder.slice(1).map((x,i)=>(i+1)+' — '+x.name).join('; ')+'. Сама игра поднимается у 5–7-леток до шага 5, у 8–9-леток до 8.</p>'+
   '<p><b>Смешанный счёт</b> (один — по-русски, два — по-английски). Консилиум: только 8–9 лет или уверенный 7-летка, который уже легко считает 1–10 на обоих языках. Только по желанию ребёнка («горная тропа» после игры), в автоподъём не входит. Клетка-круг — по-русски, квадрат — по-английски. Сначала 1–5, после двух удачных троп — 1–10. Перепутал язык — не ошибка, эхо скажет правильно. Детям с гиперактивностью и низким тонусом не включать.</p>'+
   '<h2>Если трудно</h2><p>Режим «Легко» — только слушать и прыгать, нужная клетка светится.</p>'+
@@ -1001,9 +1018,10 @@ function sheetHTML(){
   '<h2>Настройки</h2>'+
   '<div class="setl">Язык счёта</div>'+seg('lang',[['ru','По-русски'],['en','По-английски']])+
   '<div class="setl">Смешанный счёт (горная тропа после игры)</div>'+seg('mixAllow',[[false,'Выключен'],[true,'Разрешить']])+
+  '<div class="setl">Модуль: до какого числа</div>'+seg('module',[[5,'До 5'],[10,'До 10'],[12,'До 12'],[20,'11–20']])+
   '<div class="setl">Возраст</div>'+seg('age',[['junior','5–7 лет'],['senior','8–9 лет']])+
   '<div class="setl">Трудность</div>'+seg('mode',[['auto','Сама'],['easy','Легко'],['hard','Трудно — вместе'],['manual','Начать с уровня…']])+
-  (st.mode==='manual'?seg('startLevel',CONTENT.ladder.slice(1).map((x,i)=>[i+1,(i+1)+' · '+x.name])):'')+
+  (st.mode==='manual'?seg('startLevel',CONTENT.ladder.slice(1,+st.module===20?9:8).map((x,i)=>[i+1,(i+1)+' · '+x.name])):'')+
   '<div class="setl">Сколько ждать «скажи вслух»</div>'+seg('sayS',CONFIG.sayOptions.map(n=>[n,n+' с']))+
   '<div class="setl">Проходов за игру</div>'+seg('rounds',CONFIG.roundsOptions.map(n=>[n,String(n)]))+
   '<div class="setl">Звук и голос</div>'+seg('sound',[[true,'Включён'],[false,'Выключен']])+
@@ -1020,7 +1038,7 @@ $('#sheet').addEventListener('click',e=>{
   if(seg){
     const k=seg.dataset.k; let v=b.dataset.v;
     if(v==='true') v=true; else if(v==='false') v=false; else if(/^\d+$/.test(v)) v=+v;
-    S.set[k]=v; if(k==='sound') A.on=v; if(k==='age'||k==='mode'||k==='startLevel') S.set.level=0;
+    S.set[k]=v; if(k==='sound') A.on=v; if(k==='age'||k==='mode'||k==='startLevel'||k==='module') S.set.level=0;
     if(k==='draftBar' && !v) $('#draft').classList.remove('on');
     saveSet(); const y=$('#adult').scrollTop; $('#sheet').innerHTML=sheetHTML(); $('#adult').scrollTop=y; return;
   }
@@ -1068,7 +1086,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden && !['intr
 function setVH(){ const h=(window.visualViewport&&visualViewport.height)||innerHeight; document.documentElement.style.setProperty('--vh',(Math.min(h,innerHeight)/100)+'px'); }
 setVH(); addEventListener('resize',setVH); addEventListener('orientationchange',()=>setTimeout(setVH,250));
 if(window.visualViewport) visualViewport.addEventListener('resize',setVH);
-loadSet(); buildCourt(); setupButtons(); go('intro');
+loadSet(); buildCourt(); S.builtMod=+S.set.module; setupButtons(); go('intro');
 </script>
 </body>
 </html>
