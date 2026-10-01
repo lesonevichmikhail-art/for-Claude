@@ -37,3 +37,5 @@
 | predmet_sova.png | предмет: sova | Найди пару (04) |
 | predmet_yabloko.png | предмет: yabloko | Найди пару (04) |
 | predmet_zont.png | предмет: zont | Найди пару (04) |
+| ikonka_domoy.png | домик (кнопка «домой»); та же картинка, что predmet_dom | Найди пару (04) |
+| ikonka_dalshe.png | стрелка вправо (дальше) | Найди пару (04) |

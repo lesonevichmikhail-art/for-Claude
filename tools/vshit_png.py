@@ -1,5 +1,5 @@
 """Вшивает PNG из assets/images и mp3 из assets/audio (VOICE_B64) в игру: заполняет строку `const ASSETS = {...};`.
-Запуск: python3 tools/vshit_png.py games/drafts/najdi-paru_v2.0.html
+Запуск: python3 tools/vshit_png.py games/final/najdi-paru_v2.0.html
 Берутся только файлы, имена которых упомянуты в игре."""
 import base64, json, os, re, sys
 game = sys.argv[1]

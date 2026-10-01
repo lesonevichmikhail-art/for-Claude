@@ -3,7 +3,7 @@
 Библиотека PNG_LIBRARY не подключена — **сверь с библиотекой**, что уже есть (слонёнок, носки, иконки паузы/уха могут быть).
 
 ## Картинки
-**Осталось 2: ikonka_dalshe.png, ikonka_domoy.png.** Всё остальное вставлено, каталог — `assets/images/PNG_LIBRARY.md`.
+**Все картинки вставлены (2026-09-30).** Всё остальное вставлено, каталог — `assets/images/PNG_LIBRARY.md`.
 
 Уже вставлены (2026-09-30): predmet_dom, predmet_kot, predmet_delfin (вместо рыбы), predmet_myach, predmet_banan, predmet_zont, predmet_sova, predmet_yabloko, predmet_luna, predmet_grib, predmet_lodka, predmet_dva_noska, Топа «привет» и «смотрит», рубашка карты, ровная тропа (шахматку убрал `tools/ubrat_shahmatku.py`), predmet_ryba (рыба вернулась, дельфин остался 13-м предметом). Лежат в `assets/images/`.
 
