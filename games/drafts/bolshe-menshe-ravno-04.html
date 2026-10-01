@@ -33,7 +33,7 @@ h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .corner{min-width:64px;font-size:clamp(13px,3.4vw,16px);font-weight:800;color:#B7792F;letter-spacing:.5px;white-space:nowrap}
 .ibtn{width:64px;height:64px;border-radius:18px;background:var(--card);box-shadow:0 3px 0 var(--line),0 4px 12px rgba(91,74,63,.12);display:flex;align-items:center;justify-content:center;padding:10px;flex:none}
 .ibtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
-#infoBtn{margin-left:auto;width:48px;height:48px;border-radius:50%;font-size:24px;font-weight:800;font-family:Georgia,serif;font-style:italic;color:var(--ink2);padding:0}
+#infoBtn{margin-left:auto;width:64px;height:64px;border-radius:50%;font-size:24px;font-weight:800;font-family:Georgia,serif;font-style:italic;color:var(--ink2);padding:0}
 #earBtn{margin-left:auto}
 .hide{display:none!important}
 .vhide{visibility:hidden!important}
@@ -420,6 +420,7 @@ const VOICE = {
   '03_podozhdem':'Подождём вместе.',
   '03_prosnulsya_zhuk':'Жук проснулся.', '03_prosnulsya_klad':'Сундук открылся.', '03_prosnulsya_voda':'Водолаз готов.',
   '03_stukni':'Стукни столько раз, сколько тут.',
+  '03_vyberem_vmeste':'Позови взрослого. Выберите вместе.',
   /* тропа вызова — фразы уже записаны для «Коня», подходят по смыслу */
   kon_vybor:'Какую тропу выберешь?',
   kon_bridge_gornaya:'Покажи маме, какую тропу ты выбрал.'
@@ -498,11 +499,11 @@ const A = {
     if(this.ctx && this.ctx.state==='suspended') this.ctx.resume();
     return this.ctx;
   },
-  tone(f,dur,vol,type,slideTo){
+  tone(f,dur,vol,type,slideTo,delay){
     if(!this.on) return;
     const c=this.ensure(); if(!c) return;
     if(V.busy) vol*=0.45;                                  // эффект во время речи — тише голоса
-    const t=c.currentTime, o=c.createOscillator(), g=c.createGain();
+    const t=c.currentTime+(delay||0), o=c.createOscillator(), g=c.createGain();
     o.type=type||'sine';
     o.frequency.setValueAtTime(f,t);
     if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo,t+dur*0.8);
@@ -517,7 +518,7 @@ const A = {
   hint(){    this.tone(440,0.40,0.12,'sine',392); },
   inhale(){  this.tone(330,0.45,0.09,'sine',440); },
   exhale(){  this.tone(392,0.70,0.09,'sine',262); },
-  done(){ [262,330,392,523].forEach((f,i)=>setTimeout(()=>this.tone(f,0.9,0.14),i*120)); },
+  done(){ [262,330,392,523].forEach((f,i)=>this.tone(f,0.9,0.14,'sine',0,i*0.12)); },
   /* своё для игры 03 */
   eat(){  this.tone(294,0.16,0.10,'triangle',220); },       // «ням» — предмет ушёл к герою
   turn(){ this.tone(440,0.30,0.08,'sine',523); },           // герой поворачивается
@@ -905,19 +906,20 @@ async function stukTask(ep){
   await say(ep,'03_stukni');
   let got=0, lastHit=0, done;
   const fin=new Promise(r=>done=r);
+  S.waiting=true; S.idleMs=0; S.idleStage=0;                         // простой считается, «ухо» работает
   const stopMet=(()=>{ let alive=true; (async()=>{ while(alive && got<n){ try{ await sleep(C.beatMs*tempo()); }catch(e){ return; } if(alive && got<n) A.tone(523,0.09,0.05,'sine'); } })(); return ()=>{ alive=false; }; })();
   btn.onclick=()=>{
     if(RT.paused || got>=n) return;
     const now=performance.now();
     if(now-lastHit<C.minGap*tempo()){ S.log.stukFast++; return; }        // слишком быстро — просто не считаем
-    lastHit=now; got++;
+    lastHit=now; got++; S.idleMs=0; S.idleStage=0;
     btn.classList.remove('beat'); void btn.offsetWidth; btn.classList.add('beat');
     row.children[got-1].classList.add('lit'); A.tone(330+got*40,0.18,0.12,'triangle');
     V.say('chislo_'+got);
     if(got>=n) done();
   };
   S.cancels.push(()=>done());
-  await fin; stopMet(); btn.onclick=null; chk(ep);
+  await fin; stopMet(); btn.onclick=null; S.waiting=false; chk(ep);
   await sleep(500); await say(ep,'ob_est');
   box.classList.add('hide');
 }
@@ -946,7 +948,7 @@ const blocked=()=>RT.paused || (S.lock && !S.sleeping);
 ['#pileL','#pileR'].forEach(s=>$(s).addEventListener('click',e=>{
   if(blocked()) return;
   const nb=e.target.closest('.num');
-  if(nb && !nb.classList.contains('hide')){ A.tap(); onPick({num:+nb.dataset.n}); return; }
+  if(nb && !nb.classList.contains('hide') && !$(s).classList.contains('counted')){ A.tap(); onPick({num:+nb.dataset.n}); return; }
   if(S.T && S.T.kind==='num') return;              // L6: цифра — только послушать
   A.tap(); onPick({pile:$(s).dataset.side});
 }));
@@ -1002,7 +1004,7 @@ function afterTask(lv, misses, hinted, fast, tasksLeft){
   }
   if(hard){ S.hardRun++; S.cleanRun=0; } else if(clean){ S.cleanRun++; S.hardRun=0; } else { S.hardRun=0; S.cleanRun=0; }
   const canLevel = S.set.mode==='auto'||S.set.mode==='manual';
-  const shift=d=>{ if(S.shifted) return; const nl=clamp(S.level+d,layerRange()); if(nl!==S.level){ S.level=nl; S.shifted=true; S.set.level=nl; saveSet(); L.levels.push((d>0?'↑':'↓')+nl); } };
+  const shift=d=>{ if(S.shifted) return; const r=layerRange(); const nl=d>0 ? Math.min(S.level+d, Math.max(S.level,r[1])) : clamp(S.level+d,r); if(nl!==S.level){ S.level=nl; S.shifted=true; S.set.level=nl; saveSet(); L.levels.push((d>0?'↑':'↓')+nl); } };
   if(S.hardRun>=2 && S.support){ S.hardRun=0; if(canLevel) shift(-1); }
   if(S.cleanRun>=CONFIG.upAfterClean){
     S.cleanRun=0;
@@ -1019,6 +1021,7 @@ async function offerTropa(ep){
   $('#offHill').innerHTML=pic('ikonka_tropa_gornaya','горная тропа');
   $('#offer').classList.remove('hide');
   S.lock=false; S.lastInstr=['kon_vybor'];
+  if(S.set.tropa==='together') await instr(ep,'03_vyberem_vmeste');       // режим «вместе»: зовём взрослого
   await instr(ep,'kon_vybor');
   let ev; do{ ev=await waitTap(ep); } while(!ev.tropa);
   S.lock=true; $('#offer').classList.add('hide');
@@ -1233,6 +1236,7 @@ async function runTask(ep, T, k){
     while(todo.size){
       const ev=await waitTap(ep);
       if(ev.pile && todo.has(ev.pile)){ S.lock=true; todo.delete(ev.pile); await countPile(ep, ev.pile); S.lock=false; continue; }
+      if(ev.pile || ev.num) continue;                                 // эту кучку уже посчитали
       if(ev.sign || ev.pile){ S.log.signEarly++; if(early++<2){ S.lock=true; hintEl(pileEl([...todo][0])); await instr(ep,'03_snachala'); S.lock=false; } }
     }
     S.lock=true;
@@ -1392,7 +1396,7 @@ function sheetHTML(){
   '<h2>Как помочь</h2><ol><li>Считайте вместе пальчиком.</li><li>Раскладывайте парами: мой — твой. У кого остался без пары — у того больше.</li><li>Хвалите за то, что посчитал, а не за скорость.</li></ol>'+
   '<p>Ошибок в игре нет. Первый промах — «Попробуем ещё раз?». Второй — предметы встают в два ряда парами, лишние без пары светятся. Третий — нужная кучка и знак светятся и встают сами.</p>'+
   '<p><b>Подстройка сама.</b> Первая игра начинается с середины и по двум заданиям выбирает уровень. Две ошибки подряд — опора: предметы стоят парами, счёт медленный, с голосом. При опоре ещё два трудных задания — уровень ниже. Три чистых задания подряд — опора уходит, иначе уровень выше. Повторная игра — на ступень легче, чем закончилась. Ухо, цифра и «жук спит» не считаются.</p>'+
-  '<p><b>Горная тропа.</b> После трёх чистых заданий ребёнок может выбрать картинкой: та же тропа или горная. Горная — на ступень выше, 4 задания, без опоры. Две ошибки подряд — тихо назад, без слов. Дошёл — уровень остаётся выше. Не чаще 2 раз за игру, не в конце. Оба выбора хорошие.</p>'+
+  '<p><b>Горная тропа.</b> После трёх чистых заданий ребёнок может выбрать картинкой: та же тропа или горная. Горная — на ступень выше, 4 задания, без опоры. Две ошибки подряд — тихо назад, без слов. Дошёл — уровень остаётся выше. Не чаще 2 раз за игру, не в конце. Оба выбора хорошие. «Игра сама» — без приглашений; «Ребёнок выбирает» — уровень растёт только по его выбору; «Вместе» — игра зовёт взрослого выбрать вместе.</p>'+
   '<p>Уровни: '+CONTENT.levels.slice(1).map((p,i)=>(i+1)+' — '+p.name).join('; ')+'. 5–8 лет: уровни 1–5 (горная тропа — до 6), 8–10 лет: 1–7. Каждое третье задание примерно — «поровну». После каждых трёх заданий — один вдох-выдох. 45 секунд без действий — окно отдыха.</p>'+
   '<p>Если ребёнок гиперактивный: оставьте «Жук спит», темп «Медленный», 2 круга. Если вялый, низкий тонус: «Стук под метроном».</p>'+
   '<h2>Если трудно</h2><p>Режим «Легко». Вернитесь к кучкам до 5. Дома — те же пары «мой — твой» на ложках, пуговицах, ягодах.</p>'+
@@ -1468,7 +1472,10 @@ function setupButtons(){
   setupRest();
   $('#homeBtn').onclick=async()=>{ A.tap(); const ep=++RT.epoch; try{ await say(ep,'ob_poka'); }catch(e){} go('intro'); };
 }
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && !['intro','bridge'].includes(S.screen)) openPause(); else if(document.hidden) V.pause(); });
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){ if(!['intro','bridge'].includes(S.screen)) openPause(); else V.pause(); }
+  else if(!RT.paused) V.resume();                                   // заставка и мостик: фраза доигрывается
+});
 
 /* ================= КАСАНИЕ: pointerdown на всё, что нажимается =================
    Кнопки срабатывают на касание, без задержки click. Следом браузер присылает «настоящий» click — его гасим флагом.
@@ -1476,6 +1483,7 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden && !['intr
 const TAPSEL='button,.pile';
 document.addEventListener('pointerdown',e=>{
   if(e.button>0) return;
+  if(e.target.closest('#adult')){ RT.pdGhost=false; return; }       // шпаргалку листают — там обычный click
   const el=e.target.closest(TAPSEL);
   if(!el || el.disabled){ RT.pdGhost=false; return; }
   RT.pdGhost=true; A.ensure();
