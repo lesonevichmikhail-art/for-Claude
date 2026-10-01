@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Больше, меньше, равно: знаки сравнения — подготовка к 1 классу, развитие внимания, игры по Лурии | Дядя Миша</title>
+<meta name="description" content="Игра для детей 5–8 лет: где больше? Жук-обжора открывает рот к большей кучке — так ребёнок запоминает знаки больше, меньше и равно и учится считать, а не угадывать по размеру.">
+<style>
+:root{
+  --bg:#FFF8F0; --ink:#5B4A3F; --ink2:#8A7767; --card:#FFFFFF; --line:#EADCC9;
+  --glow:#F2C14E; --sky1:#FDEBD3; --sky2:#FFF4E4; --grass:#E6EDCF; --grass2:#D4E2B2;
+  --soft:#FBE3C6; --soft2:#E4ECCD; --green:#7C9A3D;
+  --ph:#EFE7DC; --phLine:#BCAE9D; --draft:#77706A;
+  --top:76px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;
+  font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;font-size:18px;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button img{width:100%;height:100%}
+img{display:block;max-width:100%;max-height:100%;object-fit:contain;-webkit-user-drag:none;pointer-events:none}
+h1{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#app{position:fixed;inset:0;overflow:hidden;max-width:100%}
+.screen{position:absolute;inset:0;padding:var(--top) 10px 10px;display:none;min-height:0;overflow:hidden}
+.screen.on{display:flex}
+.screen:not(.on){display:none!important}
+.meadow{background:linear-gradient(var(--sky1),var(--sky2) 55%,var(--grass) 56%,var(--grass2))}
+
+/* ---------- верхняя полоса ---------- */
+#topbar{position:absolute;left:0;right:0;top:0;height:var(--top);z-index:20;display:flex;align-items:center;gap:10px;padding:6px 10px;pointer-events:none}
+#topbar>*{pointer-events:auto}
+.corner{min-width:64px;font-size:clamp(13px,3.4vw,16px);font-weight:800;color:#B7792F;letter-spacing:.5px;white-space:nowrap}
+.ibtn{width:64px;height:64px;border-radius:18px;background:var(--card);box-shadow:0 3px 0 var(--line),0 4px 12px rgba(91,74,63,.12);display:flex;align-items:center;justify-content:center;padding:10px;flex:none}
+.ibtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+#infoBtn{margin-left:auto;width:48px;height:48px;border-radius:50%;font-size:24px;font-weight:800;font-family:Georgia,serif;font-style:italic;color:var(--ink2);padding:0}
+#earBtn{margin-left:auto}
+.hide{display:none!important}
+.vhide{visibility:hidden!important}
+
+/* ---------- заглушка картинки ---------- */
+.ph{width:100%;height:100%;min-height:40px;border:2px dashed var(--phLine);background:var(--ph);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#7C6F63;text-align:center;overflow:hidden;padding:4px}
+.ph b{font-size:clamp(14px,3.4vw,22px);line-height:1.1}
+.ph small{font-size:10px;opacity:.75;word-break:break-all;line-height:1.1;margin-top:2px}
+.ph.dot{min-height:0;border-radius:50%;padding:0;background:#E9DFD2}
+
+/* ---------- заставка ---------- */
+#scr-intro{flex-direction:column;align-items:center;justify-content:space-between}
+#scr-intro .title{font-size:clamp(22px,5.4vw,34px);font-weight:800;color:var(--ink2);background:rgba(255,248,240,.8);border-radius:14px;padding:2px 14px}
+.introRow{display:flex;align-items:flex-end;justify-content:center;gap:4vw;width:100%;flex:1;min-height:0;padding-bottom:4%}
+.ihero{height:min(calc(var(--vh,1vh)*28),200px);width:min(26vw,190px);display:flex;align-items:flex-end;justify-content:center;flex:none}
+.ihero.items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:end;gap:4px}
+.ihero.items>*{min-width:0;aspect-ratio:1;overflow:hidden}
+.ihero.items img{width:100%;height:100%}
+#playBtn{width:clamp(110px,min(28vw,calc(var(--vh,1vh)*26)),180px);height:clamp(110px,min(28vw,calc(var(--vh,1vh)*26)),180px);border-radius:50%;background:#FFE7C2;box-shadow:0 6px 0 #E3B97F,0 10px 24px rgba(217,130,43,.35);display:flex;align-items:center;justify-content:center;animation:soft 2.4s ease-in-out infinite;flex:none;align-self:center}
+#playBtn img{width:52%;height:52%;margin-left:8%}
+#playBtn:active{transform:translateY(4px);box-shadow:0 2px 0 #E3B97F}
+@keyframes soft{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+/* ---------- дыхание ---------- */
+#scr-breath,#scr-finish{flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--vh,1vh)*2)}
+.bwrap{display:flex;align-items:center;justify-content:center;gap:4vw;flex:1;min-height:0;width:100%}
+.bcircle{--d:min(46vw,calc(var(--vh,1vh)*46),300px);width:var(--d);height:var(--d);border-radius:50%;background:radial-gradient(circle at 42% 36%,#FFF1DE,#F3CFA0);box-shadow:0 0 0 10px rgba(243,207,160,.25);position:relative;flex:none;will-change:transform}
+.bcircle .bi{position:absolute;inset:22%}
+.bcircle .bi img{width:100%;height:100%}
+.breg{height:min(calc(var(--vh,1vh)*30),200px);width:min(28vw,170px);display:flex;align-items:flex-end;justify-content:center;will-change:transform;transform-origin:50% 100%}
+
+/* ---------- выбор мира ---------- */
+#scr-world{flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--vh,1vh)*2)}
+.worlds{display:flex;gap:3vw;justify-content:center;align-items:stretch;width:100%;max-width:900px}
+.wbtn{flex:1 1 0;max-width:260px;min-height:64px;border-radius:24px;background:#fff;box-shadow:0 4px 0 var(--line),0 8px 20px rgba(91,74,63,.14);padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;transition:box-shadow .3s,transform .2s}
+.wbtn .wImg{width:100%;height:min(calc(var(--vh,1vh)*24),30vw,180px);display:flex;align-items:center;justify-content:center}
+.wbtn .wItem{width:min(calc(var(--vh,1vh)*7),9vw,54px);height:min(calc(var(--vh,1vh)*7),9vw,54px)}
+.wbtn .wName{font-weight:800;font-size:clamp(15px,3.6vw,20px);color:var(--ink2);text-align:center}
+.wbtn.def{box-shadow:0 0 0 5px rgba(242,193,78,.75),0 8px 20px rgba(91,74,63,.14)}
+.wbtn.pick{transform:translateY(-6px);box-shadow:0 0 0 6px var(--green),0 8px 20px rgba(91,74,63,.2)}
+.wbtn:active{transform:translateY(3px)}
+
+/* ---------- игра ---------- */
+#scr-play{display:none;flex-direction:column;gap:8px;background:linear-gradient(var(--sky2),var(--bg))}
+#scr-play.on{display:flex}
+#scr-play.w-zhuk{background:linear-gradient(#FDEBD3,#FFF4E4 60%,#E6EDCF 61%,#D4E2B2)}
+#scr-play.w-klad{background:linear-gradient(#F3E1C4,#FBEBD2 60%,#E9D3B0 61%,#DCC29A)}
+#scr-play.w-voda{background:linear-gradient(#E3F1EE,#D3E9E4 60%,#C4DDD2 61%,#B4D2C3)}
+#scr-play.hasFon{background-size:cover;background-position:center bottom}
+.field{flex:1;min-height:0;display:flex;align-items:stretch;justify-content:center;gap:8px;width:100%;max-width:1000px;align-self:center}
+.pile{flex:1 1 0;min-width:0;position:relative;display:flex;flex-direction:column;align-items:stretch;border-radius:24px;background:rgba(255,255,255,.62);box-shadow:0 3px 0 rgba(234,220,201,.9);padding:8px;cursor:pointer;transition:box-shadow .3s,background .3s}
+.pile.pick{box-shadow:0 0 0 6px var(--green);background:rgba(255,255,255,.85)}
+.pile.hint{animation:cardGlow 1.3s ease-in-out 3}
+.pile.glow{box-shadow:0 0 0 6px rgba(242,193,78,.85)}
+.pile .num{align-self:center;min-width:72px;min-height:64px;padding:0 12px;border-radius:18px;background:#fff;box-shadow:0 3px 0 var(--line);font-size:clamp(40px,min(11vw,calc(var(--vh,1vh)*9)),64px);font-weight:800;line-height:64px;text-align:center;color:var(--ink);flex:none}
+.pile.bigNum .num{font-size:clamp(56px,min(18vw,calc(var(--vh,1vh)*16)),120px);line-height:1.15;min-height:0;margin-top:auto;margin-bottom:auto;padding:4px 18px}
+.pile.bigNum.withItems .num{font-size:clamp(40px,min(11vw,calc(var(--vh,1vh)*9)),64px);line-height:64px;margin:0}
+.items{flex:1;min-height:0;position:relative;margin-top:4px}
+.items.off{display:none}
+.it{position:absolute;display:block;transition:left .5s ease,top .5s ease,width .5s ease,height .5s ease,transform .5s ease;transform:rotate(var(--r,0deg))}
+.it.rows{--r:0deg}
+.it.extra.show{border-radius:50%;box-shadow:0 0 0 4px rgba(242,193,78,.9);background:rgba(255,236,190,.7)}
+.mid{flex:0 0 clamp(78px,22vw,190px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--vh,1vh)*1.5);min-width:0}
+.actor{width:100%;height:min(calc(var(--vh,1vh)*20),22vw,170px);display:flex;align-items:center;justify-content:center;transition:transform .55s ease}
+.actor.hop{animation:hop .6s ease-out}
+@keyframes hop{0%,100%{translate:0 0}40%{translate:0 -12px}}
+.slot{min-width:72px;min-height:72px;border-radius:18px;background:#fff;box-shadow:0 3px 0 var(--line);font-size:56px;font-weight:800;line-height:72px;text-align:center;color:#B7692F}
+.slot.empty{background:rgba(255,255,255,.5);border:3px dashed var(--phLine);box-shadow:none;color:transparent}
+.slot.fill{animation:pop .5s ease-out}
+.signs{display:flex;justify-content:center;gap:clamp(12px,4vw,28px);flex:none}
+.sbtn{width:clamp(72px,20vw,96px);height:clamp(72px,20vw,96px);border-radius:24px;background:#FFE7C2;box-shadow:0 5px 0 #E3B97F,0 8px 18px rgba(217,130,43,.25);font-size:clamp(46px,12vw,64px);font-weight:800;line-height:1;color:var(--ink);display:flex;align-items:center;justify-content:center;padding-bottom:6px}
+.sbtn:active{transform:translateY(3px);box-shadow:0 2px 0 #E3B97F}
+.sbtn.hint{animation:cardGlow 1.3s ease-in-out 3}
+.sbtn.glow{box-shadow:0 0 0 6px rgba(242,193,78,.85),0 5px 0 #E3B97F}
+@keyframes cardGlow{0%,100%{box-shadow:0 5px 0 #E3B97F}50%{box-shadow:0 0 0 8px rgba(242,193,78,.75)}}
+.chain{flex:1;min-height:0;display:flex;align-items:stretch;justify-content:center;gap:6px;width:100%;max-width:1000px;align-self:center}
+.chain .pile{flex:1 1 0;padding:4px 2px;min-width:68px}
+.chain .pile .num{min-width:64px;padding:0 4px}
+.chain .cs{flex:0 0 auto;align-self:center;min-width:40px;font-size:44px}
+.chain .cs.act{box-shadow:0 0 0 5px rgba(242,193,78,.8)}
+.minib{position:absolute;inset:var(--top) 0 0 0;z-index:12;display:flex;align-items:center;justify-content:center;background:rgba(255,248,240,.9)}
+.minib .bcircle{--d:min(50vw,calc(var(--vh,1vh)*42),260px)}
+.fly{position:fixed;z-index:30;pointer-events:none}
+
+/* ---------- финал и мостик ---------- */
+.finRow{display:flex;align-items:flex-end;justify-content:center;gap:4vw;width:100%}
+.finHero{display:flex;flex-direction:column;align-items:center;width:min(34vw,220px)}
+.finHero .hImg{height:min(calc(var(--vh,1vh)*26),180px);width:100%;display:flex;align-items:flex-end;justify-content:center}
+.fincircle{--d:min(26vw,calc(var(--vh,1vh)*20),140px)}
+.thumbs{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:100%}
+.thumbs .th{width:var(--s,30px);height:var(--s,30px)}
+.thumbs .more{font-weight:800;color:var(--ink2);align-self:center}
+#scr-bridge{display:grid;grid-template-columns:76px minmax(0,1fr) 76px;grid-template-rows:auto auto minmax(0,1fr);
+  grid-template-areas:"ag top hm" "town town town" "card card card";align-items:center;justify-items:center;gap:10px 8px;padding-top:10px}
+.brTop{grid-area:top;display:flex;align-items:flex-end;justify-content:center;gap:8px;min-width:0}
+.brTop .reg2{height:min(calc(var(--vh,1vh)*12),100px);width:min(22vw,110px);display:flex;align-items:flex-end;justify-content:center}
+.brMost{width:min(28vw,calc(var(--vh,1vh)*15),160px);height:min(28vw,calc(var(--vh,1vh)*15),160px);flex:none}
+.brTrail{grid-area:town;display:flex;gap:14px;justify-content:center;--s:min(28px,7vw);max-width:100%}
+#againBtn{grid-area:ag}#homeBtn{grid-area:hm}
+#scr-bridge .ibtn{width:72px;height:72px;padding:12px}
+.adultCard{grid-area:card;align-self:start;max-height:100%;overflow-y:auto;background:#fff;border-radius:20px;border:3px solid var(--line);padding:10px 14px;font-size:21px;line-height:1.28;max-width:640px;width:100%}
+.adultCard p{margin:0 0 6px}.adultCard p:last-child{margin:0}
+.adultCard .lbl{display:block;font-size:14px;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px}
+
+/* ---------- пауза ---------- */
+#pause{position:absolute;inset:0;z-index:40;background:rgba(91,74,63,.55);display:none;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap}
+#pause.on{display:flex}
+#pause .ibtn{width:104px;height:104px;border-radius:26px;padding:20px}
+#pause #resumeBtn{width:140px;height:140px;border-radius:50%;background:#FFE7C2;padding:34px 30px 34px 40px}
+
+/* ---------- окно взрослого ---------- */
+#adult{position:absolute;inset:0;z-index:50;background:rgba(91,74,63,.6);display:none;justify-content:center;align-items:flex-start;overflow-y:auto;overflow-x:hidden;padding:12px}
+#adult.on{display:flex}
+.sheet{background:var(--bg);border-radius:22px;max-width:680px;width:100%;padding:18px 18px 24px;font-size:17px;line-height:1.45;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.sheet h2{font-size:20px;margin:18px 0 6px}.sheet h2:first-of-type{margin-top:6px}
+.sheet ul,.sheet ol{margin:4px 0;padding-left:22px}
+.sheet .three{background:#fff;border:3px solid var(--line);border-radius:16px;padding:12px 14px;font-size:19px}
+.sheet .three p{margin:0 0 8px}
+.sheet .closeRow{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.tbtn{min-height:48px;padding:8px 16px;border-radius:14px;background:#fff;border:2px solid var(--line);font-weight:700;font-size:16px}
+.tbtn.main{background:var(--soft);border-color:#EAB77C}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.seg button{min-height:46px;padding:6px 12px;border-radius:12px;background:#fff;border:2px solid var(--line);font-size:15px;font-weight:700}
+.seg button.on{background:var(--soft2);border-color:var(--green)}
+.setl{font-weight:800;font-size:15px;margin-top:8px}
+.log{font-size:15px;background:#fff;border-radius:12px;padding:8px 12px;border:1px solid var(--line)}
+.sheet .sign{margin-top:24px;opacity:.75;font-weight:700}
+
+/* ---------- черновой голос ---------- */
+#draft{position:absolute;left:0;right:0;bottom:0;z-index:30;background:var(--draft);color:#fff;font-size:13px;padding:5px 10px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#draft.on{opacity:.92}
+
+/* ---------- блок I и III: предметы на дыхании, жук спит, стук, тропа, отдых, подпись senior ---------- */
+.bleaves{position:absolute;left:0;right:0;bottom:calc(var(--vh,1vh)*4);display:flex;justify-content:center;gap:4vw;pointer-events:none}
+.bleaves .lf{width:min(14vw,calc(var(--vh,1vh)*10),84px);height:min(14vw,calc(var(--vh,1vh)*10),84px);opacity:.35;transition:opacity .6s,transform .6s}
+.bleaves .lf.lit{opacity:1;transform:scale(1.12)}
+
+.pile.dim,.sbtn.dim{opacity:.45}
+.pile.countMe{animation:cardGlow 1.6s ease-in-out infinite}
+.it.lit{border-radius:50%;box-shadow:0 0 0 4px rgba(124,154,61,.75);background:rgba(230,237,207,.85)}
+.actor.wig{animation:wig .7s ease-in-out}
+@keyframes wig{0%,100%{rotate:0deg}25%{rotate:-6deg}75%{rotate:6deg}}
+.stuk{position:absolute;inset:var(--top) 0 0 0;z-index:11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--vh,1vh)*3);background:rgba(255,248,240,.94)}
+.stukItems{display:flex;gap:3vw;justify-content:center}
+.stukItems .si{width:min(16vw,calc(var(--vh,1vh)*11),90px);height:min(16vw,calc(var(--vh,1vh)*11),90px);opacity:.3;transition:opacity .4s,transform .4s}
+.stukItems .si.lit{opacity:1;transform:scale(1.1)}
+.stukBtn{width:clamp(140px,min(44vw,calc(var(--vh,1vh)*36)),240px);height:clamp(140px,min(44vw,calc(var(--vh,1vh)*36)),240px);border-radius:50%;background:#FFE7C2;box-shadow:0 6px 0 #E3B97F;padding:clamp(16px,4vw,30px);display:flex;align-items:center;justify-content:center}
+.stukBtn.beat{animation:pop .4s ease-out}
+.offer,.rest{position:absolute;inset:var(--top) 0 0 0;z-index:15;display:flex;align-items:center;justify-content:center;gap:6vw;background:rgba(255,248,240,.95);padding:12px}
+.obtn{width:clamp(130px,min(40vw,calc(var(--vh,1vh)*40)),260px);height:clamp(130px,min(40vw,calc(var(--vh,1vh)*40)),260px);border-radius:28px;background:#fff;box-shadow:0 5px 0 var(--line),0 8px 20px rgba(91,74,63,.14);padding:10px}
+.obtn:active{transform:translateY(3px)}
+.restC{--d:min(56vw,calc(var(--vh,1vh)*50),280px)}
+.rest .ibtn{width:96px;height:96px;padding:18px}
+.brTropa{width:min(16vw,calc(var(--vh,1vh)*12),90px);height:min(16vw,calc(var(--vh,1vh)*12),90px);flex:none}
+#cap{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--vh,1vh)*1);z-index:25;max-width:92vw;background:rgba(255,255,255,.92);border-radius:14px;padding:4px 14px;font-size:20px;font-weight:700;color:var(--ink);pointer-events:none;opacity:0;transition:opacity .3s;text-align:center}
+#cap.on{opacity:1}
+.seg button img{width:28px;height:28px;display:inline-block;vertical-align:middle;margin-right:6px}
+
+.pop{animation:pop .45s ease-out}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.07)}100%{transform:scale(1)}}
+body.paused *{animation-play-state:paused!important}
+@media (prefers-reduced-motion:reduce){
+  #playBtn{animation:none}
+  .it,.actor{transition-duration:.2s}
+}
+
+/* ---------- альбом ---------- */
+@media (orientation:landscape){
+  :root{--top:70px}
+  .actor{height:min(calc(var(--vh,1vh)*26),16vw,170px)}
+  .mid{flex-basis:clamp(90px,16vw,190px)}
+  #scr-bridge{grid-template-columns:minmax(80px,1fr) minmax(80px,1fr) minmax(0,min(640px,62vw));grid-template-rows:minmax(0,1fr) auto auto;
+    grid-template-areas:"top top card" "town town card" "ag hm card";column-gap:14px}
+  .adultCard{align-self:center}
+  .brTop{max-width:100%}
+  .brMost{width:min(11vw,calc(var(--vh,1vh)*26),170px);height:min(11vw,calc(var(--vh,1vh)*26),170px)}
+  .brTop .reg2{height:min(calc(var(--vh,1vh)*22),130px);width:min(10vw,120px)}
+  .wbtn .wImg{height:min(calc(var(--vh,1vh)*34),20vw,200px)}
+}
+@media (orientation:portrait) and (max-height:620px){ .adultCard{line-height:1.22} #scr-bridge{gap:6px} }
+@media (max-width:400px){ .corner{font-size:13px} .pile{padding:5px;border-radius:18px} .field{gap:5px} .slot{min-width:64px;min-height:64px;line-height:64px;font-size:48px} }
+@media (max-height:460px){ :root{--top:66px}
+  .screen{padding-left:6px;padding-right:6px;padding-bottom:6px}
+  .sbtn{width:68px;height:68px;font-size:44px}
+  .slot{min-width:64px;min-height:64px;line-height:64px;font-size:46px}
+  .pile .num{min-height:64px;line-height:64px;font-size:40px}
+  .pile.bigNum.withItems .num{line-height:64px;font-size:40px}
+  .wbtn .wName{display:none}
+}
+@media (orientation:landscape) and (max-height:460px){
+  #scr-play{flex-direction:row;align-items:stretch}
+  .field,.chain{align-self:stretch;min-width:0;flex:1 1 0}
+  .signs{flex-direction:column;justify-content:center;gap:8px}
+  .finHero{width:min(46vw,320px)} .finHero .hImg{height:calc(var(--vh,1vh)*36)} .finHero .thumbs{--s:22px!important}
+  .brTrail{--s:22px}
+  #scr-bridge .ibtn{width:64px;height:64px;padding:11px} .adultCard{line-height:1.22;padding:8px 12px} }
+@media (orientation:landscape) and (max-height:300px){
+  .sbtn{width:64px;height:64px;font-size:40px;border-radius:18px} .signs{gap:3px}
+  .slot{min-width:64px;min-height:64px;line-height:64px;font-size:40px} .mid{gap:4px}
+}
+</style>
+</head>
+<body>
+<h1>Больше, меньше, равно: игра про знаки сравнения для подготовки к школе</h1>
+<div id="app">
+  <div id="topbar">
+    <div class="corner" id="sign">Дядя Миша</div>
+    <button class="ibtn hide" id="pauseBtn" aria-label="Пауза"></button>
+    <button class="ibtn hide" id="earBtn" aria-label="Послушать ещё раз"></button>
+    <button class="ibtn" id="infoBtn" aria-label="Для взрослого">i</button>
+  </div>
+
+  <!-- I блок: вход -->
+  <section class="screen meadow" id="scr-intro" aria-label="Заставка">
+    <div class="title">Больше, меньше, равно</div>
+    <div class="introRow">
+      <div class="ihero" id="introA"></div>
+      <button id="playBtn" aria-label="Играть"></button>
+      <div class="ihero items" id="introB"></div>
+    </div>
+  </section>
+
+  <section class="screen meadow" id="scr-breath" aria-label="Дышим">
+    <div class="bwrap">
+      <div class="breg" id="bReg"></div>
+      <div class="bcircle" id="bCircle"><div class="bi" id="bNose"></div><div class="bi" id="bMouth" style="opacity:0"></div><div class="bi" id="bCheck" style="opacity:0"></div></div>
+    </div>
+    <!-- I блок: дыхательный счёт — каждый вдох зажигает яблоко (звено A — активация, тонус) -->
+    <div class="bleaves" id="bLeaves"></div>
+  </section>
+
+  <!-- II блок: выбор мира -->
+  <section class="screen meadow" id="scr-world" aria-label="Выбери мир">
+    <div class="worlds" id="worlds"></div>
+  </section>
+
+  <!-- II–III блок: показ и игра -->
+  <section class="screen" id="scr-play" aria-label="Где больше">
+    <div class="field" id="field">
+      <div class="pile" id="pileL" role="button" aria-label="Левая кучка" data-side="l"><button class="num hide" data-side="l"></button><div class="items"></div></div>
+      <div class="mid"><div class="actor" id="actor"></div><div class="slot empty hide" id="slot"></div></div>
+      <div class="pile" id="pileR" role="button" aria-label="Правая кучка" data-side="r"><button class="num hide" data-side="r"></button><div class="items"></div></div>
+    </div>
+    <div class="chain hide" id="chain">
+      <div class="pile" data-ci="0"><button class="num" data-ci="0"></button><div class="items off"></div></div>
+      <div class="slot cs empty" data-si="0"></div>
+      <div class="pile" data-ci="1"><button class="num" data-ci="1"></button><div class="items off"></div></div>
+      <div class="slot cs empty" data-si="1"></div>
+      <div class="pile" data-ci="2"><button class="num" data-ci="2"></button><div class="items off"></div></div>
+    </div>
+    <div class="signs" id="signs">
+      <button class="sbtn" data-s="gt" aria-label="больше">&gt;</button>
+      <button class="sbtn" data-s="eq" aria-label="поровну">=</button>
+      <button class="sbtn" data-s="lt" aria-label="меньше">&lt;</button>
+    </div>
+    <!-- I блок для «низкого тонуса»: стук по герою под медленный метроном (звено A) -->
+    <div class="stuk hide" id="stuk"><div class="stukItems" id="stukItems"></div><button class="stukBtn" id="stukBtn" aria-label="Стукни"></button></div>
+    <div class="minib hide" id="miniB"><div class="bcircle" id="mCircle"><div class="bi" id="mNose"></div><div class="bi" id="mMouth" style="opacity:0"></div></div></div>
+  </section>
+
+  <!-- IV блок: завершение -->
+  <section class="screen meadow" id="scr-finish" aria-label="Итог">
+    <div class="finRow">
+      <div class="finHero" id="finA"></div>
+      <div class="bcircle fincircle" id="fCircle"><div class="bi" id="fNose"></div><div class="bi" id="fMouth" style="opacity:0"></div></div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-bridge" aria-label="Покажи взрослому">
+    <button class="ibtn" id="againBtn" aria-label="Ещё раз"></button>
+    <div class="brTop"><div class="reg2" id="brA"></div><div class="brTropa hide" id="brTropa"></div><div class="brMost" id="brMost"></div></div>
+    <button class="ibtn" id="homeBtn" aria-label="Домой"></button>
+    <div class="brTrail" id="brTrail"></div>
+    <div class="adultCard" id="brCard"></div>
+  </section>
+
+  <div id="pause" role="dialog" aria-label="Пауза">
+    <button class="ibtn" id="pHome" aria-label="Домой"></button>
+    <button class="ibtn" id="resumeBtn" aria-label="Продолжить"></button>
+    <button class="ibtn" id="pRestart" aria-label="Начать заново"></button>
+  </div>
+
+  <!-- тропа вызова: выбор ребёнка картинкой (III блок — программирование, «я сам») -->
+  <div class="offer hide" id="offer" role="dialog" aria-label="Какую тропу выберешь">
+    <button class="obtn" id="offSame" aria-label="Та же тропа"></button>
+    <button class="obtn" id="offHill" aria-label="Горная тропа"></button>
+  </div>
+  <!-- отдых после 45 с без действий: круг-нос (2 цикла дыхания) и стрелка «играть дальше» (I блок) -->
+  <div class="rest hide" id="rest" role="dialog" aria-label="Отдых">
+    <button class="bcircle restC" id="restC" aria-label="Подышать"><div class="bi" id="rNose"></div><div class="bi" id="rMouth" style="opacity:0"></div></button>
+    <button class="ibtn" id="restGo" aria-label="Играть дальше"></button>
+  </div>
+  <div id="cap"></div>
+  <div id="adult" role="dialog" aria-label="Для взрослого"><div class="sheet" id="sheet"></div></div>
+  <div id="draft"></div>
+</div>
+
+<script>
+/* =====================================================================
+   «Больше, меньше, равно» — игра 03, версия 04 (2026-10-01). Проект «Дядя Миша».
+   v04: общие правила проекта (junior/senior, подстройка 2 ошибки → опора, 3 верных → вверх),
+   тропа вызова, речь из библиотеки, «Звук» и «Речь» отдельно, отдых после 45 с, касание = pointerdown.
+   Консилиум (research/КОНСИЛИУМ_больше_меньше_блоки_I_III.md): I блок — дыхательный счёт на входе,
+   стук под метроном (профиль «низкий тонус»); III блок — «сначала посчитай, потом выбери», «жук спит — ждём».
+   Ядро (из игр 02, 06, 11): intro → breath → learn (выбор мира + показ) → play → finish → bridge.
+   check = самопроверка внутри play: ряды один-к-одному, рот жука поворачивается к большей кучке.
+   Новая игра = новые CONTENT, VOICE, ASSETS. Механику не трогать.
+   ===================================================================== */
+
+/* ---------------- CONTENT ---------------- */
+/* face — как повернуть героя: r — к правой кучке, l — к левой, eq — поровну, n — ждёт ответа.
+   Картинка героя смотрит вправо (промпт: «facing right»). */
+const CONTENT = {
+  worlds:{
+    zhuk:{ name:'Жук-обжора', v:'03_mir_zhuk', actor:'geroy_zhuk_obzhora', full:'geroy_zhuk_obzhora_syt', actorName:'жук',
+      item:'predmet_yabloko', itemName:'яблоко', prize:'geroy_zhuk_obzhora_syt',
+      face:{ n:'rotate(-90deg)', r:'none', l:'scaleX(-1)', eq:'rotate(-90deg) scale(.92)' },
+      znak:'03_znak', porovnu:'03_porovnu', bg:'w-zhuk', fon:'fon_polyana',
+      sleep:'geroy_zhuk_spit', vSleep:'03_spit_zhuk', vWake:'03_prosnulsya_zhuk', vBreath:'03_vdohni_zhuk' },
+    klad:{ name:'Сокровище', v:'03_mir_klad', actor:'ikonka_klyuch_strelka', full:'ikonka_klyuch_strelka', actorName:'ключ-стрелка',
+      item:'predmet_moneta', itemName:'монета', prize:'predmet_sunduk',
+      face:{ n:'rotate(-90deg) scale(.85)', r:'none', l:'rotate(180deg)', eq:'rotate(90deg) scale(.85)' },
+      znak:'03_znak_klad', porovnu:'03_porovnu_klad', bg:'w-klad', fon:'fon_peshchera',
+      sleep:'predmet_sunduk_zamok', vSleep:'03_spit_klad', vWake:'03_prosnulsya_klad', vBreath:'03_vdohni_klad' },
+    voda:{ name:'Водолаз', v:'03_mir_voda', actor:'geroy_vodolaz', full:'geroy_vodolaz', actorName:'водолаз',
+      item:'predmet_gruzik', itemName:'грузик', prize:'geroy_vodolaz',
+      face:{ n:'translateY(-12%)', r:'translate(26%,16%)', l:'translate(-26%,16%)', eq:'translateY(16%)' },
+      znak:'03_znak_voda', porovnu:'03_porovnu_voda', bg:'w-voda', fon:'fon_more',
+      sleep:'geroy_vodolaz_otdyhaet', vSleep:'03_spit_voda', vWake:'03_prosnulsya_voda', vBreath:'03_vdohni_voda' }
+  },
+  worldOrder:['zhuk','klad','voda'],
+  /* Уровни. kind: pile — «где больше?» (или «=»); sign2 — кучка, потом знак; num — только цифры, знак; chain — 3 числа, 2 знака.
+     hi2/after — после after заданий на уровне числа до hi2. eq — доля «поровну». obm — доля обманок. nums — цифра рядом с кучкой. */
+  levels:[null,
+    { kind:'pile',  name:'предметы 1–5, «где больше?»', hi:5,  diff:2, eq:.3, count:true },
+    { kind:'pile',  name:'предметы до 10',              hi:10, diff:2, eq:.3, needBig:6, count:true },
+    { kind:'sign2', name:'+ знак (рот жука)',           hi:10, diff:1, eq:.3, count:true },
+    { kind:'sign2', name:'обманка: большие против маленьких', hi:9, diff:1, eq:.3, obm:.6, count:true },
+    { kind:'sign2', name:'цифра + кучка рядом',         hi:10, diff:1, eq:.3, nums:true },
+    { kind:'num',   name:'только цифры до 10, потом до 20', hi:10, hi2:20, after:3, diff:1, eq:.25 },
+    { kind:'chain', name:'цепочка из 3 чисел: 4 < 7 < 9', hi:10, hi2:20, after:2 }
+  ],
+  obmBig:1.6,              // большие предметы в обманке — в 1,6 раза
+  numWords:['','один','два','три','четыре','пять','шесть','семь','восемь','девять','десять','одиннадцать','двенадцать',
+    'тринадцать','четырнадцать','пятнадцать','шестнадцать','семнадцать','восемнадцать','девятнадцать','двадцать'],
+  signWord:{ gt:'больше', lt:'меньше', eq:'поровну' },
+  adult3:[
+    'Сегодня ребёнок сравнивал: где больше, где меньше, где поровну. Сначала считал, потом выбирал.',
+    'За ужином спросите: «У кого больше ягод — у тебя или у меня?» Пусть сначала посчитает, потом ответит.',
+    'Не спешите. «Подожду» и «думаю» — это тоже ответ.'
+  ],
+  adultTropa:'Спросите, почему выбрал горную тропу.',
+  adultTropaSame:'Спросите, почему остался на той же тропе. Оба выбора хорошие.' 
+};
+
+/* ---------------- VOICE: ключ = имя mp3, значение = текст ---------------- */
+const VOICE = {
+  ob_privet:'Привет! Я Дядя Миша.', ob_dyshim:'Давай подышим вместе.', ob_vdoh:'Вдох…', ob_vydoh:'Выдох…',
+  ob_eshche_raz:'Попробуем ещё раз?', ob_est:'Есть!',
+  ob_zdorovo:'Здорово получилось!', ob_spasibo:'Спасибо за помощь!',
+  ob_ne_speshi:'Не спеши. Я рядом.', ob_otdohnem:'Может, отдохнём? Я подожду.',
+  ob_otnesi:'Отнеси телефон маме, папе, бабушке или дедушке. Покажи, что получилось.',
+  ob_pozovi:'Позови маму, папу или бабушку. Покажи, что получилось.',
+  ob_esli_zanyaty:'Если все заняты — покажи игрушке. А взрослым — вечером.', ob_poka:'Пока! До встречи.',
+  '03_vhod':'Три мира. Выбери, куда пойдём.',
+  '03_mir_zhuk':'Жук-обжора.', '03_mir_klad':'Сокровище.', '03_mir_voda':'Водолаз.',
+  '03_gde_bolshe':'Где больше?',
+  '03_znak':'Поставь знак. Жук открывает рот туда, где больше.',
+  '03_znak_klad':'Поставь знак. Ключ-стрелка показывает туда, где больше.',
+  '03_znak_voda':'Поставь знак. Водолаз опускается туда, где больше.',
+  '03_porovnu':'Поровну! Жук сыт.',
+  '03_porovnu_klad':'Поровну! Ключ ждёт.',
+  '03_porovnu_voda':'Поровну! Водолаз висит ровно.',
+  '03_cepochka':'Три числа. Поставь два знака.',
+  '03_poschitay':'Давай посчитаем пальчиком.',
+  '03_obmanka':'Большие — не значит много. Посчитай.',
+  '03_most':'Покажи взрослому пальцы — сколько хочешь. Пусть покажет свои. У кого больше?',
+  /* консилиум: блок I и III (новые фразы, ждут записи) */
+  '03_vdohni_zhuk':'Вдохни столько, сколько яблок.',
+  '03_vdohni_klad':'Вдохни столько, сколько монеток.',
+  '03_vdohni_voda':'Вдохни столько, сколько грузиков.',
+  '03_snachala':'Сначала посчитай.',
+  '03_spit_zhuk':'Тише. Жук спит.', '03_spit_klad':'Тише. Сундук заперт.', '03_spit_voda':'Тише. Водолаз отдыхает.',
+  '03_podozhdem':'Подождём вместе.',
+  '03_prosnulsya_zhuk':'Жук проснулся.', '03_prosnulsya_klad':'Сундук открылся.', '03_prosnulsya_voda':'Водолаз готов.',
+  '03_stukni':'Стукни столько раз, сколько тут.',
+  /* тропа вызова — фразы уже записаны для «Коня», подходят по смыслу */
+  kon_vybor:'Какую тропу выберешь?',
+  kon_bridge_gornaya:'Покажи маме, какую тропу ты выбрал.'
+};
+for(let n=1;n<=20;n++) VOICE['chislo_'+n]=CONTENT.numWords[n];
+
+/* ---------------- ASSETS и ZVUK — вшиваются сборкой ---------------- */
+const ASSETS = {/*@ASSETS@*/};
+const ZVUK = {/*@ZVUK@*/};
+
+/* ---------------- CONFIG ---------------- */
+const CONFIG = {
+  id:'bmr03',
+  draft: Object.keys(VOICE).some(k => !ZVUK[k]),     // нет хоть одного mp3 — черновой голос
+  layers:{ junior:[1,5], senior:[1,7] },        // решение Михаила 2026-09-30: baby влит в junior
+  tasksPerRound:3, roundsOptions:[2,3,4],             // после каждых 3 заданий — 1 цикл дыхания
+  askFirst:2,                                         // вопрос звучит на первых заданиях круга (baby — всегда)
+  idle1:15000, idle2:45000,
+  fastMs:6000,
+  breath:{ inMs:2500, outMs:3500, cycles:3, lo:.8, hi:1.12 },
+  restCycles:2,                                       // окно отдыха: нажал на круг — 2 цикла
+  /* подстройка (общие правила): 2 ошибки подряд — опора; 3 чистых задания подряд — опора уходит / уровень +1 */
+  supportAfterMisses:2, upAfterClean:3,
+  /* «сначала посчитай»: кучка считается сама по касанию; с опорой — медленно, с голосом на каждом предмете */
+  count:{ stepMs:260, slowStepMs:700 },
+  /* «жук спит» (III блок, торможение): с 4-го задания, примерно 1 из 5, ждать 3,5 с; касание = +1,5 с (не больше 2 раз) */
+  sleep:{ fromTask:4, chance:.2, waitMs:3500, addMs:1500, maxAdd:2 },
+  /* стук (I блок, профиль «низкий тонус»): 2–4 удара, метроном 1,5 с, удар быстрее 0,9 с не считается */
+  stuk:{ fromTask:4, chance:.2, n:[2,4], beatMs:1500, minGap:900 },
+  /* тропа вызова (скилл tropa-vyzova-poverh-skaffoldinga) */
+  challenge:{ enabled:true, offerAfterCorrect:3, stepUp:1, burstLength:4, maxOffersPerSession:2,
+    stopAfterFailedBursts:2, fallbackMisses:2, noOfferInLast:2 }
+};
+
+/* ================= ЗВУК (ядро zvuk-igr-dyadya-misha) ================= */
+const A = {
+  ctx:null, on:true,
+  ensure(){
+    if(!this.ctx){ try{ this.ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(this.ctx && this.ctx.state==='suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  tone(f,dur,vol,type,slideTo){
+    if(!this.on) return;
+    const c=this.ensure(); if(!c) return;
+    if(V.busy) vol*=0.45;                                  // эффект во время речи — тише голоса
+    const t=c.currentTime, o=c.createOscillator(), g=c.createGain();
+    o.type=type||'sine';
+    o.frequency.setValueAtTime(f,t);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo,t+dur*0.8);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+dur*0.18);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+0.05);
+  },
+  tap(){     this.tone(660,0.13,0.16,'sine',880); },
+  release(){ this.tone(392,0.75,0.15,'sine',587); },
+  right(){   this.tone(523,0.35,0.15,'sine',784); },
+  hint(){    this.tone(440,0.40,0.12,'sine',392); },
+  inhale(){  this.tone(330,0.45,0.09,'sine',440); },
+  exhale(){  this.tone(392,0.70,0.09,'sine',262); },
+  done(){ [262,330,392,523].forEach((f,i)=>setTimeout(()=>this.tone(f,0.9,0.14),i*120)); },
+  /* своё для игры 03 */
+  eat(){  this.tone(294,0.16,0.10,'triangle',220); },       // «ням» — предмет ушёл к герою
+  turn(){ this.tone(440,0.30,0.08,'sine',523); },           // герой поворачивается
+  sign(){ this.tone(587,0.20,0.10,'sine',698); },           // знак встал
+  dzin(){ this.tone(988,0.30,0.07,'sine',1175); }           // черновой голос: нет mp3
+};
+
+/* ================= ВРЕМЯ, ПАУЗА, ОТМЕНА ================= */
+const RT = { epoch:0, paused:false };
+class Cancel extends Error{}
+function chk(ep){ if(ep!==RT.epoch) throw new Cancel(); }
+function ptimer(ms, cb){
+  let left=ms, last=performance.now(), dead=false;
+  const t=setInterval(()=>{ const now=performance.now(); if(!RT.paused) left-=now-last; last=now; if(left<=0){ clearInterval(t); if(!dead) cb(); } },40);
+  return ()=>{ dead=true; clearInterval(t); };
+}
+function sleep(ms){ const ep=RT.epoch; return new Promise((res,rej)=>{ ptimer(ms,()=> ep===RT.epoch ? res() : rej(new Cancel())); S.cancels.push(()=>rej(new Cancel())); }); }
+
+/* ================= ГОЛОС ДЯДИ МИШИ ================= */
+const V = {
+  el:null, cache:{}, busy:false, token:0, _res:null, _kill:null,
+  stop(){
+    this.token++;
+    if(this.el){ try{ this.el.pause(); }catch(e){} this.el=null; }
+    if(this._kill){ this._kill(); this._kill=null; }
+    this.busy=false;
+    const r=this._res; this._res=null; if(r) r();
+  },
+  say(key){
+    this.stop();
+    const tk=this.token, text=VOICE[key]||key;
+    return new Promise(res=>{
+      this._res=res; this.busy=true;
+      const done=()=>{ if(tk!==this.token) return; this.busy=false; this._res=null; this.el=null; draftOff(); capOff(); res(); };
+      const draft=()=>{
+        if(tk!==this.token) return;
+        draftOn(key,text);
+        if(A.on) A.dzin();
+        const ms = A.on ? Math.min(4800, 700+text.length*62) : Math.min(1400, 400+text.length*25);
+        this._kill=ptimer(ms,done);
+      };
+      if(!S.set.speech){ capOn(text); this._kill=ptimer(450,done); return; }   // речь выключил взрослый
+      capOn(text);
+      if(ZVUK[key]){
+        let a=this.cache[key]; if(!a){ a=new Audio(ZVUK[key]); this.cache[key]=a; }
+        try{ a.currentTime=0; }catch(e){}
+        this.el=a; a.onended=done; a.onerror=draft;
+        if(!RT.paused){ const p=a.play(); if(p&&p.catch) p.catch(()=>{ if(!RT.paused) draft(); }); }
+      } else draft();
+    });
+  },
+  pause(){ if(this.el) try{ this.el.pause(); }catch(e){} },
+  resume(){ if(this.el){ const p=this.el.play(); if(p&&p.catch) p.catch(()=>{}); } }
+};
+/* senior: на экране первое предложение фразы, голос говорит всё; junior — без подписей */
+let capT=null;
+function capOn(text){ if(S.set.age!=='senior') return; clearTimeout(capT); const c=$('#cap'); c.textContent=(String(text).match(/^[^.!?…]+[.!?…]?/)||[text])[0]; c.classList.add('on'); }
+function capOff(){ clearTimeout(capT); capT=setTimeout(()=>$('#cap').classList.remove('on'),900); }
+let draftT=null;
+function draftOn(key,text){
+  if(!(CONFIG.draft && S.set.draftBar) || ZVUK[key] || S.set.age==='senior') return;
+  clearTimeout(draftT); const d=$('#draft'); d.textContent=key+'.mp3 — «'+text+'»'; d.classList.add('on');
+}
+function draftOff(){ clearTimeout(draftT); draftT=setTimeout(()=>$('#draft').classList.remove('on'),700); }
+
+/* ================= СОСТОЯНИЕ ================= */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const S = {
+  screen:'intro', set:{}, cancels:[],
+  lastInstr:[], waiting:false, pending:null, resolveTap:null, lock:true,
+  idleMs:0, idleStage:0, learnSeen:false, world:'zhuk',
+  level:1, support:false, hardRun:0, cleanRun:0, shifted:false, prevHard:false,
+  calib:false, calibRes:[], used:{}, lvCount:{}, lastEq:false,
+  T:null, layoutMode:'scatter', eaten:0,
+  missRun:0, taskNo:0, sleeping:null, burst:null, offers:0, failedBursts:0, tropaPick:null, offerNow:false, resting:false,
+  log:null
+};
+const DEF = { age:'junior', mode:'auto', startLevel:1, level:0, sound:true, speech:true, draftBar:true, rounds:3, world:'zhuk', tempo:'normal',
+  tropa:'both',            // both — «и так, и так» (по умолчанию) · auto — игра сама · child — ребёнок выбирает · together — вместе
+  profile:'calm' };        // calm — «жук спит» (торможение) · tonus — стук под метроном (низкий тонус) · off — без вставок
+function loadSet(){
+  let s={}; try{ s=JSON.parse(localStorage.getItem(CONFIG.id+'_set')||'{}')||{}; }catch(e){ s={}; }
+  S.set=Object.assign({},DEF,s);
+  const q=(location.search.match(/[?&]age=(baby|junior|senior)/)||[])[1]; if(q) S.set.age=q;
+  if(S.set.age!=='senior') S.set.age='junior';                    // старое «baby» → junior
+  A.on=!!S.set.sound; S.world=S.set.world;
+}
+function saveSet(){ try{ localStorage.setItem(CONFIG.id+'_set',JSON.stringify(S.set)); }catch(e){} }
+function newLog(){ return { tasks:0, clean:0, hard:0, hints:0, miss:0, shown:0, supports:0, idle:0, rt:[], levels:[],
+  byL:{}, obm:0, obmTrap:0, obmClean:0, eqN:0, eqMiss:0, nums:0,
+  counted:0, signEarly:0, sleepN:0, sleepCalm:0, sleepTaps:0, stukN:0, stukFast:0, rests:0, offers:[], bursts:[] }; }
+
+/* ================= ПОМОЩНИКИ ================= */
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function pic(key, word, dot){
+  if(ASSETS[key]) return '<img src="'+ASSETS[key]+'" alt="'+(word||'')+'">';
+  if(dot) return '<div class="ph dot" role="img" aria-label="'+(word||key)+'"></div>';
+  return '<div class="ph" role="img" aria-label="'+(word||key)+'"><b>'+(word||'')+'</b><small>'+key+'.png</small></div>';
+}
+function layerRange(){
+  const r=CONFIG.layers[S.set.age]||[1,5];
+  if(S.set.mode==='manual'){ const s=+S.set.startLevel; return [Math.min(r[0],s),Math.max(r[1],s)]; }
+  return r;
+}
+const clamp=(v,r)=>Math.max(r[0],Math.min(r[1],v));
+const W=()=>CONTENT.worlds[S.world]||CONTENT.worlds.zhuk;
+const tempo=()=>S.set.tempo==='slow'?1.6:1;
+const sgn=(a,b)=>a>b?'gt':a<b?'lt':'eq';
+const sideOf=s=>s==='gt'?'l':s==='lt'?'r':'eq';
+function mkJit(){ const a=[]; for(let k=0;k<20;k++) a.push([Math.random()*2-1,Math.random()*2-1,ri(-22,22)]); return a; }
+const GLYPH={ gt:'>', lt:'<', eq:'=' };
+
+/* ================= ПЕРЕХОДЫ ================= */
+function showSec(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  $('#scr-'+id).classList.add('on');
+}
+function go(name){
+  RT.epoch++;
+  S.cancels.forEach(f=>{ try{f();}catch(e){} }); S.cancels=[];
+  V.stop(); S.waiting=false; S.pending=null; S.lock=true;
+  if(S.rejectTap){ const r=S.rejectTap; S.rejectTap=null; S.resolveTap=null; r(); }
+  document.querySelectorAll('.fly').forEach(e=>e.remove());
+  $('#miniB').classList.add('hide'); $('#stuk').classList.add('hide'); $('#offer').classList.add('hide'); closeRest(); S.sleeping=null;
+  showSec(name==='learn'?'world':name); S.screen=name;
+  document.body.dataset.scr=name;
+  $('#sign').classList.toggle('hide', name!=='intro');
+  $('#infoBtn').classList.toggle('hide', name==='bridge');
+  $('#pauseBtn').classList.toggle('hide', name==='intro'||name==='bridge');
+  $('#earBtn').classList.toggle('hide', !['breath','learn','play'].includes(name));
+  const f=FLOW[name];
+  if(f) f(RT.epoch).catch(e=>{ if(!(e instanceof Cancel)) console.error(e); });
+}
+async function say(ep,...keys){ for(const k of keys){ chk(ep); await V.say(k); chk(ep); } }
+async function instr(ep,...keys){
+  S.lastInstr=keys;
+  for(const k of keys){ if(S.pending) return; chk(ep); await V.say(k); chk(ep); }
+}
+function waitTap(ep){
+  chk(ep);
+  if(S.pending){ const p=S.pending; S.pending=null; return Promise.resolve(p); }
+  S.waiting=true; S.idleMs=0; S.idleStage=0;
+  return new Promise((res,rej)=>{
+    S.resolveTap=v=>{ S.waiting=false; S.resolveTap=null; S.rejectTap=null; res(v); };
+    S.rejectTap=()=>{ S.waiting=false; rej(new Cancel()); };
+  });
+}
+function onPick(ev){
+  if(RT.paused) return;
+  if(S.sleeping && (ev.pile||ev.sign||ev.num)){ S.sleeping(); return; }
+  if(S.lock) return;
+  if(S.waiting && S.resolveTap){ S.resolveTap(ev); return; }
+  S.pending=ev; V.stop();            // действие во время фразы — сразу к делу
+}
+
+/* ================= ПАУЗА ================= */
+function setPaused(p, overlay){
+  RT.paused=p; document.body.classList.toggle('paused',p);
+  if(p) V.pause(); else V.resume();
+  $('#pause').classList.toggle('on', p && !!overlay);
+}
+function openPause(){ if(S.screen==='intro'||S.screen==='bridge') return; setPaused(true,true); }
+function closePause(){ $('#pause').classList.remove('on'); if(!$('#adult').classList.contains('on')) setPaused(false); }
+
+setInterval(()=>{
+  if(!S.waiting || RT.paused || V.busy || S.resting) return;
+  S.idleMs+=250;
+  if(S.idleStage===0 && S.idleMs>=CONFIG.idle1){ S.idleStage=1; S.log&&S.log.idle++; V.say('ob_ne_speshi'); }
+  else if(S.idleStage===1 && S.idleMs>=CONFIG.idle2){ S.idleStage=2; openRest(); }
+},250);
+
+/* ---- окно отдыха (I блок): круг с носом — нажал, 2 цикла дыхания; стрелка — играть дальше ---- */
+function openRest(){
+  S.resting=true; S.log&&S.log.rests++;
+  $('#rNose').innerHTML=pic('ikonka_nos','нос'); $('#rMouth').innerHTML=pic('ikonka_rot','рот');
+  $('#rNose').style.opacity=1; $('#rMouth').style.opacity=0; $('#restC').style.transform='scale(.8)';
+  $('#rest').classList.remove('hide'); V.say('ob_otdohnem');
+}
+function closeRest(){ $('#rest').classList.add('hide'); S.resting=false; S.restBusy=false; S.idleMs=0; S.idleStage=0; }
+function setupRest(){
+  $('#restGo').innerHTML=pic('ikonka_strelka','играть дальше');
+  $('#restC').onclick=async()=>{
+    if(S.restBusy) return; S.restBusy=true; A.ensure(); V.stop();
+    try{ await breathe(RT.epoch, CONFIG.restCycles, $('#restC'), $('#rNose'), $('#rMouth'), null); }catch(e){}
+    closeRest();
+  };
+  $('#restGo').onclick=()=>{ A.tap(); V.stop(); closeRest(); };
+}
+
+/* ================= ДЫХАНИЕ ================= */
+function breathe(ep, cycles, circle, nose, mouth, extra, onInhale){
+  const B=CONFIG.breath;
+  return new Promise((res,rej)=>{
+    let t=0, last=performance.now(), cyc=0, phase=-1;
+    const total=(B.inMs+B.outMs);
+    const ease=x=>0.5-0.5*Math.cos(Math.PI*x);
+    function frame(now){
+      if(ep!==RT.epoch){ rej(new Cancel()); return; }
+      const dt=Math.min(100, now-last); last=now; if(!RT.paused) t+=dt;
+      const inCyc=t-cyc*total;
+      if(inCyc>=total){ cyc++; if(cyc>=cycles){ apply(B.lo,0); res(); return; } }
+      const x=t-cyc*total, isIn=x<B.inMs;
+      const ph=isIn?0:1;
+      if(ph!==phase){ phase=ph; if(isIn){ A.inhale(); V.say('ob_vdoh'); if(onInhale) onInhale(cyc); } else { A.exhale(); V.say('ob_vydoh'); } }
+      const k = isIn ? B.lo+(B.hi-B.lo)*ease(x/B.inMs) : B.hi-(B.hi-B.lo)*ease((x-B.inMs)/B.outMs);
+      const mOp = isIn ? Math.max(0,1-x/350) : Math.min(1,(x-B.inMs)/350);
+      apply(k,mOp);
+      requestAnimationFrame(frame);
+    }
+    function apply(k,mOp){
+      circle.style.transform='scale('+k.toFixed(4)+')';
+      if(extra) extra.style.transform='scale('+(0.94+(k-B.lo)*0.35).toFixed(4)+')';
+      nose.style.opacity=(1-mOp).toFixed(3); mouth.style.opacity=mOp.toFixed(3);
+    }
+    apply(B.lo,0); requestAnimationFrame(frame);
+  });
+}
+
+/* ================= КУЧКИ, ГЕРОЙ, ЗНАКИ ================= */
+function setWorldBg(){
+  const w=W(), p=$('#scr-play');
+  p.classList.remove('w-zhuk','w-klad','w-voda','hasFon'); p.classList.add(w.bg);
+  if(ASSETS[w.fon]){ p.classList.add('hasFon'); p.style.backgroundImage='url('+ASSETS[w.fon]+')'; } else p.style.backgroundImage='';
+}
+function actorFace(f){
+  const w=W(), a=$('#actor');
+  const img = f==='eq' && ASSETS[w.full] ? w.full : w.actor;      // нет позы «сыт» — та же картинка
+  if(a.dataset.img!==img){ a.innerHTML=pic(img,w.actorName); a.dataset.img=img; }
+  a.style.transform=w.face[f]||'none';
+  if(f!=='n'){ a.classList.remove('hop'); void a.offsetWidth; a.classList.add('hop'); }
+}
+function itemsHTML(n, big){
+  const w=W(); let h='';
+  for(let i=0;i<n;i++) h+='<i class="it'+(big?' big':'')+'" data-k="'+i+'">'+pic(w.item,w.itemName,true)+'</i>';
+  return h;
+}
+/* кучка вразброс: одинаковый размер предметов в обеих кучках; в обманке одна кучка — крупнее в 1,6 раза */
+function layoutScatter(){
+  const T=S.T; if(!T) return;
+  const boxes=pileBoxes(), counts=T.counts;
+  const cells=boxes.map((b,i)=>{ const n=counts[i]; if(!n||!b) return 0; const w=b.clientWidth, h=b.clientHeight;
+    if(!w||!h) return 0;
+    let best=0; for(let c=(n>=3?2:1);c<=n;c++){ const r=Math.ceil(n/c); best=Math.max(best,Math.min(w/c,h/r)); } return best; });
+  const base=Math.min(...cells.filter(x=>x>0).map(x=>x*0.74), 120);
+  boxes.forEach((b,i)=>{
+    if(!b) return; const n=counts[i], w=b.clientWidth, h=b.clientHeight; if(!w||!h) return;
+    const big=T.big===i;
+    /* кучка, а не столбик: от 3 предметов — минимум 2 в ряд, иначе на узком экране это уже готовые ряды */
+    const c0=n>=3?2:1;
+    let cols=c0, cell=0; for(let c=c0;c<=n;c++){ const r=Math.ceil(n/c), cl=Math.min(w/c,h/r); if(cl>cell){ cell=cl; cols=c; } }
+    const rows=Math.ceil(n/cols);
+    const s=big?Math.min(base*CONTENT.obmBig, cell*0.94):Math.min(base, cell*0.9);
+    const ox=(w-cols*cell)/2, oy=(h-rows*cell)/2;
+    const jit=T.jit[i];
+    b.querySelectorAll('.it').forEach((e,k)=>{
+      const c=k%cols, r=Math.floor(k/cols);
+      const lastRow=r===rows-1, inLast=n-(rows-1)*cols, shift=lastRow?(cols-inLast)*cell/2:0;
+      const j=jit[k], room=Math.max(0,(cell-s)/2);
+      const m=s*0.64;                                              // повёрнутый предмет не выходит за край кучки
+      const x=Math.max(m,Math.min(w-m, ox+shift+c*cell+cell/2+j[0]*room)), y=Math.max(m,Math.min(h-m, oy+r*cell+cell/2+j[1]*room));
+      e.classList.remove('rows');
+      e.style.cssText='left:'+(x-s/2)+'px;top:'+(y-s/2)+'px;width:'+s+'px;height:'+s+'px;--r:'+j[2]+'deg';
+    });
+  });
+}
+/* ряды один-к-одному: k-й предмет слева напротив k-го справа; лишние без пары — светятся (extras) */
+function layoutRows(extras){
+  const T=S.T; if(!T) return;
+  const boxes=pileBoxes(), counts=T.counts, maxN=Math.max(...counts), perCol=Math.min(10,maxN), minN=Math.min(...counts);
+  const hs=boxes.filter(Boolean).map(b=>b.clientHeight).filter(Boolean);
+  if(!hs.length) return;
+  const h=Math.min(...hs), pitch=h/perCol;
+  boxes.forEach((b,i)=>{
+    if(!b) return; const n=counts[i], w=b.clientWidth; if(!w) return;
+    const cols=Math.max(1,Math.ceil(maxN/10)), colW=w/cols;
+    const s=Math.min(pitch*0.86, colW*0.86, 110);
+    b.querySelectorAll('.it').forEach((e,k)=>{
+      const r=k%10, c=Math.floor(k/10);
+      const x=colW*c+colW/2, y=pitch*r+pitch/2;
+      e.classList.add('rows');
+      e.classList.toggle('extra', k>=minN);
+      e.classList.toggle('show', !!extras && k>=minN);
+      e.style.cssText='left:'+(x-s/2)+'px;top:'+(y-s/2)+'px;width:'+s+'px;height:'+s+'px;--r:0deg';
+    });
+  });
+}
+function pileBoxes(){
+  const T=S.T; if(!T) return [];
+  if(T.kind==='chain') return $$('#chain .pile .items').map(b=>b.classList.contains('off')?null:b);
+  return ['#pileL','#pileR'].map(s=>{ const b=$(s+' .items'); return b.classList.contains('off')?null:b; });
+}
+function relayout(){ if(S.layoutMode==='rows'||S.layoutMode==='rowsX') layoutRows(S.layoutMode==='rowsX'); else layoutScatter(); }
+function setLayout(mode){ S.layoutMode=mode; relayout(); requestAnimationFrame(()=>relayout()); }
+addEventListener('resize',()=>{ if(S.screen==='play'||S.screen==='learn') relayout(); });
+
+function signsShow(which){ $$('#signs .sbtn').forEach(b=>b.classList.toggle('hide', !which.includes(b.dataset.s))); $('#signs').classList.toggle('hide', !which.length); }
+function clearGlows(){ $$('.pile,.sbtn,.cs').forEach(e=>e.classList.remove('pick','hint','glow','act')); }
+function hintEl(e){ if(!e) return; e.classList.remove('hint'); void e.offsetWidth; e.classList.add('hint'); }
+const pileEl=side=>side==='l'?$('#pileL'):$('#pileR');
+const signBtn=s=>$('#signs .sbtn[data-s="'+s+'"]');
+
+/* ставит задание на экран */
+function renderTask(T){
+  const lv=T.lv, P=CONTENT.levels[lv];
+  clearGlows(); S.T=T;
+  const chain=T.kind==='chain';
+  $('#field').classList.toggle('hide',chain); $('#chain').classList.toggle('hide',!chain);
+  const showItems = T.kind!=='num' || S.support;
+  if(chain){
+    $$('#chain .pile').forEach((p,i)=>{
+      const nb=p.querySelector('.num'); nb.textContent=T.nums[i]; nb.dataset.n=T.nums[i];
+      p.classList.add('bigNum'); p.classList.toggle('withItems',S.support);
+      const it=p.querySelector('.items'); it.innerHTML=itemsHTML(T.nums[i],false); it.classList.toggle('off',!S.support);
+    });
+    $$('#chain .cs').forEach(s=>{ s.textContent=''; s.classList.add('empty'); s.classList.remove('fill'); });
+  } else {
+    ['l','r'].forEach((sd,i)=>{
+      const p=pileEl(sd), n=T.counts[i], nb=p.querySelector('.num');
+      nb.textContent=n; nb.dataset.n=n; nb.classList.toggle('hide', !(P.nums||T.kind==='num'));
+      p.classList.toggle('bigNum', T.kind==='num'); p.classList.toggle('withItems', T.kind==='num' && showItems);
+      const it=p.querySelector('.items'); it.innerHTML=itemsHTML(n, T.big===i); it.classList.toggle('off',!showItems);
+    });
+    const sl=$('#slot'); sl.textContent=''; sl.classList.add('empty'); sl.classList.remove('fill');
+    sl.classList.toggle('hide', P.kind==='pile');
+    actorFace('n');
+  }
+  signsShow(P.kind==='pile' ? ['eq'] : ['gt','eq','lt']);
+  setLayout(S.support ? 'rows' : 'scatter');
+  $$('.pile').forEach(p=>p.classList.remove('dim','countMe','counted'));
+  $$('#signs .sbtn').forEach(b=>b.classList.remove('dim'));
+}
+/* «Сначала посчитай»: касание кучки — предметы загораются по одному, в конце звучит число и встаёт цифра.
+   С опорой — медленно и с голосом на каждом предмете (пересчёт пальчиком). */
+async function countPile(ep, side){
+  const p=pileEl(side), its=[...p.querySelectorAll('.items .it')], slow=S.support;
+  p.classList.remove('countMe');
+  for(let k=0;k<its.length;k++){
+    chk(ep); its[k].classList.add('lit'); A.tone(392+k*22,0.12,0.08,'sine');
+    if(slow){ await Promise.all([V.say('chislo_'+(k+1)), sleep(CONFIG.count.slowStepMs*tempo())]); }
+    else await sleep(CONFIG.count.stepMs*tempo());
+  }
+  const nb=p.querySelector('.num'); nb.classList.remove('hide'); nb.classList.remove('pop'); void nb.offsetWidth; nb.classList.add('pop');
+  if(!slow) await say(ep,'chislo_'+its.length);
+  await sleep(250);
+  its.forEach(e=>e.classList.remove('lit'));
+  p.classList.add('counted'); S.log.counted++;
+}
+
+/* ---- III блок, торможение: «жук спит» — касаться не надо, ждём. Касание — жук ворочается, ждём чуть дольше. ---- */
+async function sleepTask(ep){
+  const w=W(), C=CONFIG.sleep, a=$('#actor');
+  S.log.sleepN++; S.lock=true;
+  a.innerHTML=pic(w.sleep,w.actorName); a.dataset.img=w.sleep; a.style.transform='none';
+  $$('.pile').forEach(p=>p.classList.add('dim')); $$('#signs .sbtn').forEach(b=>b.classList.add('dim'));
+  S.lastInstr=[w.vSleep];
+  let left=C.waitMs, adds=0, taps=0, said=false, last=performance.now();
+  S.sleeping=()=>{
+    taps++; S.log.sleepTaps++; A.hint();
+    a.classList.remove('wig'); void a.offsetWidth; a.classList.add('wig');
+    if(adds<C.maxAdd){ adds++; left+=C.addMs; }
+    if(!said){ said=true; V.say('03_podozhdem'); }
+  };
+  try{
+    await say(ep,w.vSleep);
+    last=performance.now();
+    while(left>0){ chk(ep); await sleep(100); const now=performance.now(); if(!RT.paused && !V.busy) left-=now-last; last=now; }
+  } finally { S.sleeping=null; }
+  if(!taps) S.log.sleepCalm++;
+  $$('.pile').forEach(p=>p.classList.remove('dim')); $$('#signs .sbtn').forEach(b=>b.classList.remove('dim'));
+  A.release(); actorFace('n');
+  await say(ep,w.vWake);
+}
+
+/* ---- I блок, профиль «низкий тонус»: стукни по герою столько раз, сколько предметов; метроном медленный,
+   удар быстрее minGap не считается (не разгоняем) ---- */
+async function stukTask(ep){
+  const w=W(), C=CONFIG.stuk, n=ri(C.n[0],C.n[1]), box=$('#stuk'), row=$('#stukItems'), btn=$('#stukBtn');
+  S.log.stukN++;
+  let h=''; for(let i=0;i<n;i++) h+='<div class="si">'+pic(w.item,w.itemName,true)+'</div>'; row.innerHTML=h;
+  btn.innerHTML=pic(w.actor,w.actorName);
+  box.classList.remove('hide'); S.lock=true;
+  S.lastInstr=['03_stukni'];
+  await say(ep,'03_stukni');
+  let got=0, lastHit=0, done;
+  const fin=new Promise(r=>done=r);
+  const stopMet=(()=>{ let alive=true; (async()=>{ while(alive && got<n){ try{ await sleep(C.beatMs*tempo()); }catch(e){ return; } if(alive && got<n) A.tone(523,0.09,0.05,'sine'); } })(); return ()=>{ alive=false; }; })();
+  btn.onclick=()=>{
+    if(RT.paused || got>=n) return;
+    const now=performance.now();
+    if(now-lastHit<C.minGap*tempo()){ S.log.stukFast++; return; }        // слишком быстро — просто не считаем
+    lastHit=now; got++;
+    btn.classList.remove('beat'); void btn.offsetWidth; btn.classList.add('beat');
+    row.children[got-1].classList.add('lit'); A.tone(330+got*40,0.18,0.12,'triangle');
+    V.say('chislo_'+got);
+    if(got>=n) done();
+  };
+  S.cancels.push(()=>done());
+  await fin; stopMet(); btn.onclick=null; chk(ep);
+  await sleep(500); await say(ep,'ob_est');
+  box.classList.add('hide');
+}
+function putSign(el, s){ el.textContent=GLYPH[s]; el.classList.remove('empty','fill'); void el.offsetWidth; el.classList.add('fill'); A.sign(); }
+
+/* большая кучка «уходит» к герою: жук съел, монеты — в сундук, грузики — к водолазу */
+async function eatPile(ep, side){
+  const p=pileEl(side), box=p.querySelector('.items'); if(box.classList.contains('off')) return;
+  const t=$('#actor').getBoundingClientRect(), its=[...box.querySelectorAll('.it')];
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  its.forEach((e,k)=>{
+    const r=e.getBoundingClientRect(), f=document.createElement('div'); f.className='fly'; f.innerHTML=e.innerHTML;
+    f.style.cssText='left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px';
+    document.body.appendChild(f); e.style.visibility='hidden';
+    const dx=t.left+t.width/2-(r.left+r.width/2), dy=t.top+t.height/2-(r.top+r.height/2);
+    if(f.animate) f.animate([{transform:'none',opacity:1},{transform:'translate('+dx+'px,'+dy+'px) scale(.3)',opacity:0}],
+      {duration:reduce?250:520,delay:reduce?0:k*45,easing:'ease-in',fill:'forwards'});
+  });
+  A.eat(); S.eaten+=its.length;
+  await sleep(reduce?300:560+its.length*45);
+  document.querySelectorAll('.fly').forEach(e=>e.remove());
+}
+
+/* клики: кучка, цифра, знак */
+const blocked=()=>RT.paused || (S.lock && !S.sleeping);
+['#pileL','#pileR'].forEach(s=>$(s).addEventListener('click',e=>{
+  if(blocked()) return;
+  const nb=e.target.closest('.num');
+  if(nb && !nb.classList.contains('hide')){ A.tap(); onPick({num:+nb.dataset.n}); return; }
+  if(S.T && S.T.kind==='num') return;              // L6: цифра — только послушать
+  A.tap(); onPick({pile:$(s).dataset.side});
+}));
+$('#chain').addEventListener('click',e=>{ const nb=e.target.closest('.num'); if(!nb||blocked()) return; A.tap(); onPick({num:+nb.dataset.n}); });
+$$('#signs .sbtn').forEach(b=>b.addEventListener('click',()=>{ if(blocked()) return; A.tap(); onPick({sign:b.dataset.s}); }));
+
+/* ================= ПОДСТРОЙКА ТРУДНОСТИ (общие правила проекта) =================
+   Внутри задания: 1-й промах — «Попробуем ещё раз?»; 2-й — подсказка: ряды один-к-одному, лишние без пары светятся;
+     3-й — мягкий показ: нужная кучка и знак светятся и встают сами.
+   Между заданиями: 2 ошибки подряд (missRun) — опора (ряды сразу, счёт медленный с голосом, на цифрах — предметы).
+     При опоре ещё 2 трудных задания подряд — уровень ниже. 3 чистых задания подряд — опора уходит, иначе уровень +1
+     (или приглашение на горную тропу). Уровень — не чаще раза за круг. «Ухо», цифра-«послушать», «жук спит» не считаются.
+   Первая игра: 2 задания с середины слоя → оба с промахом — вниз к началу; оба чистые и быстрые — выше середины. */
+const HINT_AT=2, SHOW_AT=3;
+const LMAX=()=>Math.min(CONTENT.levels.length-1, layerRange()[1]+CONFIG.challenge.stepUp);
+function noteMiss(){
+  S.missRun++;
+  const ch=CONFIG.challenge;
+  if(S.burst && S.missRun>=ch.fallbackMisses){ endBurst(false); return; }          // тихий возврат с горной тропы
+  if(!S.burst && !S.calib && S.missRun>=CONFIG.supportAfterMisses && !S.support && S.set.mode!=='easy'){
+    S.support=true; S.log.supports++; S.log.levels.push('опора');
+  }
+}
+function endBurst(ok){
+  const b=S.burst; if(!b) return; S.burst=null;
+  if(ok){ S.level=clamp(b.base+CONFIG.challenge.stepUp,[1,LMAX()]); S.set.level=S.level; saveSet(); S.log.levels.push('тропа ✓ '+S.level); }
+  else { S.level=b.base; S.failedBursts++; S.log.levels.push('тропа → назад '+S.level); }   // неудача базовый уровень не снижает
+  S.log.bursts.push(ok?'дошёл':'вернулся'); S.cleanRun=0; S.hardRun=0; S.missRun=0;
+}
+function canOffer(tasksLeft){
+  const ch=CONFIG.challenge;
+  return ch.enabled && S.set.tropa!=='auto' && S.set.mode!=='easy' && !S.burst && !S.calib &&
+    S.offers<ch.maxOffersPerSession && S.failedBursts<ch.stopAfterFailedBursts &&
+    tasksLeft>ch.burstLength+ch.noOfferInLast && S.level<LMAX() && S.idleStage===0;
+}
+function afterTask(lv, misses, hinted, fast, tasksLeft){
+  const L=S.log, hard=misses>=HINT_AT, clean=misses===0 && !hinted;
+  L.tasks++; if(misses>=SHOW_AT) L.hard++; if(clean) L.clean++;
+  const b=L.byL[lv]||(L.byL[lv]={n:0,miss:0}); b.n++; b.miss+=misses;
+  S.prevHard=hard;
+  if(S.burst){ if(--S.burst.left<=0) endBurst(true); return; }
+  if(S.calib){
+    S.calibRes.push({misses,fast,clean});
+    if(S.calibRes.length>=2){
+      S.calib=false; const r=layerRange(), mid=Math.ceil((r[0]+r[1])/2), c=S.calibRes;
+      let nl=mid;
+      if(c.every(x=>x.misses>0)) nl=r[0];
+      else if(c.every(x=>x.clean&&x.fast)) nl=clamp(mid+1,r);
+      if(nl!==S.level){ S.level=nl; L.levels.push('подстройка '+nl); }
+      S.set.level=S.level; saveSet();
+    }
+    return;
+  }
+  if(hard){ S.hardRun++; S.cleanRun=0; } else if(clean){ S.cleanRun++; S.hardRun=0; } else { S.hardRun=0; S.cleanRun=0; }
+  const canLevel = S.set.mode==='auto'||S.set.mode==='manual';
+  const shift=d=>{ if(S.shifted) return; const nl=clamp(S.level+d,layerRange()); if(nl!==S.level){ S.level=nl; S.shifted=true; S.set.level=nl; saveSet(); L.levels.push((d>0?'↑':'↓')+nl); } };
+  if(S.hardRun>=2 && S.support){ S.hardRun=0; if(canLevel) shift(-1); }
+  if(S.cleanRun>=CONFIG.upAfterClean){
+    S.cleanRun=0;
+    if(S.support){ S.support=false; L.levels.push('без опоры'); }
+    else if(canOffer(tasksLeft)) S.offerNow=true;                     // приглашение на горную тропу
+    else if(canLevel && S.set.tropa!=='child') shift(+1);            // «ребёнок выбирает» — вверх только по его выбору
+  }
+}
+
+/* ---- тропа вызова: две картинки, без слов «легко/трудно»; оба ответа хорошие ---- */
+async function offerTropa(ep){
+  S.offerNow=false; S.offers++;
+  $('#offSame').innerHTML=pic('ikonka_tropa_prostaya','та же тропа');
+  $('#offHill').innerHTML=pic('ikonka_tropa_gornaya','горная тропа');
+  $('#offer').classList.remove('hide');
+  S.lock=false; S.lastInstr=['kon_vybor'];
+  await instr(ep,'kon_vybor');
+  let ev; do{ ev=await waitTap(ep); } while(!ev.tropa);
+  S.lock=true; $('#offer').classList.add('hide');
+  S.log.offers.push(ev.tropa==='hill'?'горная':'та же');
+  if(ev.tropa==='hill'){
+    S.tropaPick='gornaya';
+    S.burst={ base:S.level, left:CONFIG.challenge.burstLength };
+    S.level=clamp(S.level+CONFIG.challenge.stepUp,[1,LMAX()]); S.support=false; S.missRun=0;
+    S.log.levels.push('горная '+S.level);
+  } else if(!S.tropaPick) S.tropaPick='prostaya';
+  A.release(); await sleep(400);
+}
+
+/* ================= ВЫБОР ЗАДАНИЯ ================= */
+/* без повторов за игру; «поровну» — не два раза подряд; разница ≥2 на L1–L2, ≥1 дальше */
+function pickTask(lv, easy){
+  const P=CONTENT.levels[lv], cnt=S.lvCount[lv]=(S.lvCount[lv]||0)+1;
+  const u=S.used[lv]||(S.used[lv]=[]);
+  const jit=mkJit;
+  if(P.kind==='chain'){
+    const hi=cnt>P.after?P.hi2:P.hi; let nums, key, t=0;
+    do{ const s=new Set(); while(s.size<3) s.add(ri(1,hi)); nums=[...s]; if(Math.random()<.35) nums.sort((a,b)=>a-b); else if(Math.random()<.25) nums.sort((a,b)=>b-a);
+        key=nums.join(':'); t++; } while(u.includes(key) && t<60);
+    u.push(key);
+    return { lv, kind:'chain', nums, counts:nums, ans:[sgn(nums[0],nums[1]),sgn(nums[1],nums[2])], jit:[jit(),jit(),jit()] };
+  }
+  const hi = easy ? 5 : (P.hi2 && cnt>P.after ? P.hi2 : P.hi);
+  const diff = easy ? 3 : P.diff;
+  let eq = !easy && !S.lastEq && Math.random()<P.eq;
+  const obm = !easy && !!P.obm && Math.random()<P.obm;
+  let a,b,big=-1,key;
+  for(let t=0;t<200;t++){
+    if(obm){
+      /* много маленьких против меньшего числа больших (или поровну) */
+      const small=eq?ri(3,7):ri(4,P.hi), few=eq?small:ri(2,small-1);
+      const bigLeft=Math.random()<.5;
+      a=bigLeft?few:small; b=bigLeft?small:few; big=bigLeft?0:1;
+    } else if(eq){ a=b=ri(easy?1:2, Math.min(hi, lv<=2?5:hi)); }
+    else {
+      a=ri(1,hi); b=ri(1,hi);
+      if(Math.abs(a-b)<diff) continue;
+      if(P.needBig && Math.max(a,b)<P.needBig) continue;
+    }
+    key=a+':'+b+(obm?'o':'');
+    if(!u.includes(key) || t>150) break;                        // всё перебрали — повтор допустим
+  }
+  u.push(key); S.lastEq=a===b;
+  return { lv, kind:P.kind, counts:[a,b], ans:sgn(a,b), big: obm?big:-1, obm, jit:[jit(),jit()] };
+}
+
+/* ================= ПОТОКИ ЭКРАНОВ ================= */
+const FLOW = {};
+
+FLOW.intro = async ep=>{
+  S.lock=true;
+  const w=W();
+  $('#introA').innerHTML=pic(w.actor,w.actorName);
+  let h=''; for(let i=0;i<5;i++) h+='<div>'+pic(w.item,w.itemName,true)+'</div>'; $('#introB').innerHTML=h;
+  $('#scr-intro .title').classList.toggle('vhide', S.set.age!=='senior');
+};
+
+function startGame(){
+  A.ensure(); A.tap();
+  S.support=false; S.hardRun=0; S.cleanRun=0; S.log=newLog(); S.prevHard=false;
+  S.calib=false; S.calibRes=[]; S.used={}; S.lvCount={}; S.lastEq=false; S.eaten=0; S.world=S.set.world;
+  S.missRun=0; S.taskNo=0; S.burst=null; S.offers=0; S.failedBursts=0; S.tropaPick=null; S.offerNow=false; S.sleeping=null;
+  const r=layerRange(), m=S.set.mode;
+  if(m==='easy'){ S.level=r[0]; S.support=true; }
+  else if(m==='hard'){ S.level=r[1]; }
+  else if(m==='manual'){ S.level=clamp(+S.set.startLevel,r); }
+  else if(S.set.level){ S.level=clamp(+S.set.level-1,r); }       // повторная игра — на ступень легче
+  else { S.level=Math.ceil((r[0]+r[1])/2); S.calib=true; }       // первая игра — 2 задания с середины
+  S.log.levels.push('старт '+S.level+(S.calib?' (проба)':''));
+}
+
+FLOW.breath = async ep=>{
+  const c=$('#bCircle');
+  $('#bNose').innerHTML=pic('ikonka_nos','нос'); $('#bMouth').innerHTML=pic('ikonka_rot','рот'); $('#bCheck').innerHTML=pic('ikonka_galochka','');
+  $('#bNose').style.opacity=1; $('#bCheck').style.opacity=0; c.style.transform='scale(.8)';
+  $('#bReg').innerHTML=pic(W().actor,W().actorName);
+  const nC=CONFIG.breath.cycles; let lh=''; for(let i=0;i<nC;i++) lh+='<div class="lf">'+pic(W().item,W().itemName,true)+'</div>';
+  $('#bLeaves').innerHTML=lh;
+  S.lastInstr=['ob_dyshim',W().vBreath];
+  await say(ep,'ob_dyshim',W().vBreath);
+  await breathe(ep, nC, c, $('#bNose'), $('#bMouth'), $('#bReg'), i=>{ const l=$$('#bLeaves .lf')[i]; if(l) l.classList.add('lit'); });
+  $('#bNose').style.opacity=0; $('#bMouth').style.opacity=0; $('#bCheck').style.opacity=1;
+  A.release(); await sleep(700);
+  go('learn');
+};
+
+/* ---- II блок: выбор мира; в первый раз — показ: две кучки, герой поворачивается к большей, знак, «поровну» ---- */
+FLOW.learn = async ep=>{
+  S.lock=true;
+  const box=$('#worlds'); box.innerHTML='';
+  CONTENT.worldOrder.forEach(k=>{
+    const w=CONTENT.worlds[k], b=document.createElement('button');
+    b.className='wbtn'+(k===S.set.world?' def':''); b.dataset.w=k; b.setAttribute('aria-label',w.name);
+    b.innerHTML='<div class="wImg">'+pic(w.actor,w.actorName)+'</div><div class="wItem">'+pic(w.item,w.itemName,true)+'</div>'+
+      (S.set.age==='senior'?'<div class="wName">'+w.name+'</div>':'');     // junior — без текста
+    b.onclick=()=>{ if(S.lock||RT.paused) return; A.tap(); onPick({world:k}); };
+    box.appendChild(b);
+  });
+  await sleep(300);
+  S.lock=false;
+  await instr(ep,'03_vhod');
+  let ev; do{ ev=await waitTap(ep); } while(!ev.world);
+  S.lock=true; S.world=ev.world;
+  box.querySelectorAll('.wbtn').forEach(b=>b.classList.toggle('pick', b.dataset.w===ev.world));
+  await say(ep, W().v);
+  await sleep(300);
+  if(S.learnSeen){ go('play'); return; }
+
+  /* показ */
+  showSec('play'); setWorldBg();
+  const w=W(), baby=false;
+  renderTask({ lv:baby?1:3, kind:baby?'pile':'sign2', counts:[2,5], ans:'lt', big:-1, jit:[mkJit(),mkJit()] });
+  S.lock=true; signsShow([]);
+  await sleep(500);
+  S.lastInstr=['03_snachala'];
+  await say(ep,'03_snachala');
+  await countPile(ep,'l'); await countPile(ep,'r');
+  S.lastInstr=['03_gde_bolshe'];
+  await say(ep,'03_gde_bolshe');
+  await sleep(700);
+  hintEl(pileEl('r')); A.turn(); actorFace('r');
+  await sleep(900);
+  if(!baby){
+    signsShow(['gt','eq','lt']); signBtn('lt').classList.add('glow');
+    S.lastInstr=[w.znak]; await say(ep, w.znak);
+    putSign($('#slot'),'lt'); signBtn('lt').classList.remove('glow');
+    await sleep(700);
+  }
+  await eatPile(ep,'r');
+  await sleep(400);
+  /* поровну */
+  renderTask({ lv:baby?1:3, kind:baby?'pile':'sign2', counts:[3,3], ans:'eq', big:-1, jit:[mkJit(),mkJit()] });
+  S.lock=true;
+  await sleep(700);
+  setLayout('rows');
+  await sleep(800);
+  signBtn('eq').classList.add('glow'); A.turn(); actorFace('eq');
+  if(!baby) putSign($('#slot'),'eq');
+  S.lastInstr=[w.porovnu]; await say(ep, w.porovnu);
+  signBtn('eq').classList.remove('glow');
+  await sleep(500);
+  S.learnSeen=true; S.eaten=0;                                    // показ не идёт в итог
+  go('play');
+};
+
+/* ---- II–III блок: игра ---- */
+async function miniBreath(ep){
+  const m=$('#miniB'); m.classList.remove('hide');
+  $('#mNose').innerHTML=pic('ikonka_nos','нос'); $('#mMouth').innerHTML=pic('ikonka_rot','рот');
+  S.lastInstr=['ob_vdoh','ob_vydoh'];
+  await breathe(ep, 1, $('#mCircle'), $('#mNose'), $('#mMouth'), null);
+  m.classList.add('hide');
+}
+FLOW.play = async ep=>{
+  setWorldBg();
+  if(!S.log) S.log=newLog();
+  const R=+S.set.rounds||3, N=CONFIG.tasksPerRound;
+  for(let round=0; round<R; round++){
+    chk(ep);
+    S.shifted=false;
+    for(let k=0;k<N;k++){
+      const lastTask = round===R-1 && k===N-1;
+      S.tasksLeft = R*N - (round*N+k) - 1;
+      if(lastTask && S.burst) endBurst(true);                    // последнее задание — не на тропе
+      const easyEnd = lastTask && S.prevHard;                    // финал всегда на удаче
+      const lv = easyEnd ? layerRange()[0] : S.level;
+      if(!S.log.levels.length || S.log.levels[S.log.levels.length-1]!=='L'+lv) S.log.levels.push('L'+lv);
+      S.taskNo++;
+      const T=pickTask(lv, easyEnd);
+      /* вставки блоков I/III — не в калибровке, не на тропе, не в последнем задании */
+      const ins = !S.calib && !S.burst && !lastTask && T.kind!=='chain';
+      if(ins && S.set.profile==='calm' && S.taskNo>=CONFIG.sleep.fromTask && Math.random()<CONFIG.sleep.chance){
+        renderTask(T); await sleepTask(ep);
+      } else if(ins && S.set.profile==='tonus' && S.taskNo>=CONFIG.stuk.fromTask && Math.random()<CONFIG.stuk.chance){
+        await stukTask(ep);
+      }
+      await runTask(ep, T, k);
+      if(S.offerNow) await offerTropa(ep);
+    }
+    if(round<R-1){ A.done(); await say(ep,'ob_zdorovo'); await miniBreath(ep); }  // мини-передышка: 1 цикл дыхания
+  }
+  go('finish');
+};
+
+async function runTask(ep, T, k){
+  const lv=T.lv, P=CONTENT.levels[lv], w=W(), chain=T.kind==='chain';
+  S.lock=true; S.pending=null;
+  renderTask(T);
+  if(T.obm) S.log.obm++;
+  if(T.ans==='eq') S.log.eqN++;
+  await sleep(350*tempo());
+
+  const askAll = k<CONFIG.askFirst || S.support;
+  const qPick = ['03_gde_bolshe'], qSign = [chain?'03_cepochka':w.znak];
+  let stage = (T.kind==='pile'||T.kind==='sign2') ? 'pick' : 'sign';
+  const needCount = !!P.count && !chain && T.kind!=='num';          // «сначала посчитай» — уровни 1–4
+  let slotI = 0;                                                   // цепочка: какой знак ставим
+  const q = ()=> stage==='pick' ? qPick : qSign;
+  const sup = S.support ? ['03_poschitay'] : [];
+  if(chain) $$('#chain .cs')[0].classList.add('act');
+  if(needCount){
+    /* план: сначала посчитать обе кучки (касанием), потом выбирать. Знак до счёта — мягко «Сначала посчитай», не ошибка. */
+    ['l','r'].forEach(sd=>{ const p=pileEl(sd); p.querySelector('.num').classList.add('hide'); p.classList.add('countMe'); });
+    $$('#signs .sbtn').forEach(b=>b.classList.add('dim'));
+    S.lastInstr=['03_snachala']; S.lock=false;
+    if(askAll || S.lvCount[lv]===1) await instr(ep,'03_snachala');
+    const todo=new Set(['l','r']); let early=0;
+    while(todo.size){
+      const ev=await waitTap(ep);
+      if(ev.pile && todo.has(ev.pile)){ S.lock=true; todo.delete(ev.pile); await countPile(ep, ev.pile); S.lock=false; continue; }
+      if(ev.sign || ev.pile){ S.log.signEarly++; if(early++<2){ S.lock=true; hintEl(pileEl([...todo][0])); await instr(ep,'03_snachala'); S.lock=false; } }
+    }
+    S.lock=true;
+    $$('#signs .sbtn').forEach(b=>b.classList.remove('dim'));
+    await sleep(250);
+  }
+  S.lastInstr=q().concat(sup);
+  if(askAll || needCount || (chain && S.lvCount[lv]===1) || (T.kind==='num' && S.lvCount[lv]===1)) await instr(ep,...q().concat(sup));
+
+  let miss=0, hinted=false, shown=false, first=true;
+  const t0=performance.now();
+  const trapSide = T.obm && T.ans!=='eq' ? (T.big===0?'l':'r') : null;
+  const doHint = async ()=>{
+    if(!hinted){ hinted=true; S.log.hints++; }
+    if(chain) $$('#chain .pile').forEach(p=>{ p.classList.add('withItems'); p.querySelector('.items').classList.remove('off'); });
+    else if(T.kind==='num') ['l','r'].forEach(sd=>{ pileEl(sd).classList.add('withItems'); pileEl(sd).querySelector('.items').classList.remove('off'); });
+    setLayout(chain?'rows':'rowsX');
+    await instr(ep, T.obm?'03_obmanka':'03_poschitay', ...q());
+  };
+  S.lock=false;
+  while(true){
+    const ev=await waitTap(ep);
+    if(ev.num){ S.log.nums++; S.lock=true; await say(ep,'chislo_'+ev.num); S.lock=false; continue; }
+    if(!ev.pile && !ev.sign) continue;
+    if(first && trapSide){ first=false; if((ev.pile===trapSide) || (ev.sign && sideOf(ev.sign)===trapSide)) S.log.obmTrap++; }
+    first=false;
+    let ok=false;
+    if(chain){
+      if(ev.sign && ev.sign===T.ans[slotI]){
+        const cs=$$('#chain .cs'); putSign(cs[slotI], ev.sign); cs[slotI].classList.remove('act');
+        slotI++; if(slotI>=2) break;
+        cs[slotI].classList.add('act'); continue;
+      }
+    } else if(stage==='pick'){
+      if(ev.pile && T.ans!=='eq' && ev.pile===sideOf(T.ans)){
+        if(T.kind==='pile') break;
+        pileEl(ev.pile).classList.add('pick'); A.right();
+        stage='sign'; S.lock=true; S.lastInstr=qSign; await instr(ep,...qSign); S.lock=false; continue;
+      }
+      if(ev.sign && ev.sign===T.ans) break;                      // сразу верный знак — тоже засчитано
+    } else {
+      if(ev.pile) continue;                                       // кучку уже выбрали — ждём знак
+      if(ev.sign===T.ans) break;
+    }
+    /* промах — мягко */
+    miss++; S.log.miss++; if(T.ans==='eq') S.log.eqMiss++; S.lock=true; A.hint();
+    const wasBurst=!!S.burst; noteMiss();
+    if(wasBurst && !S.burst){ shown=true; break; }                  // тихо вернулись с горной тропы: показать ответ и дальше
+    if(miss>=SHOW_AT){ shown=true; S.log.shown++; break; }
+    if(miss>=HINT_AT) await doHint();
+    else await instr(ep,'ob_eshche_raz', ...q());
+    S.lock=false;
+  }
+
+  /* верно (или мягкий показ после 3 промахов) */
+  S.lock=true;
+  if(!shown) S.missRun=0;
+  const fast=performance.now()-t0<CONFIG.fastMs*tempo();
+  S.log.rt.push(Math.round(performance.now()-t0));
+  if(T.obm && miss===0) S.log.obmClean++;
+  if(shown){
+    if(S.layoutMode==='scatter') { setLayout(chain?'rows':'rowsX'); await sleep(600); }
+    if(chain){ const cs=$$('#chain .cs'); for(let i=slotI;i<2;i++){ signBtn(T.ans[i]).classList.add('glow'); await sleep(500); putSign(cs[i],T.ans[i]); signBtn(T.ans[i]).classList.remove('glow'); } }
+    else {
+      if(T.ans!=='eq') pileEl(sideOf(T.ans)).classList.add('glow');
+      if(P.kind!=='pile' || T.ans==='eq') signBtn(T.ans).classList.add('glow');
+      await sleep(700);
+    }
+  }
+  $$('#chain .cs').forEach(c=>c.classList.remove('act'));
+  if(!chain){
+    const side=sideOf(T.ans);
+    if(P.kind!=='pile' || T.ans==='eq'){ $('#slot').classList.remove('hide'); putSign($('#slot'), T.ans); }
+    A.turn(); actorFace(side);
+    if(!shown) A.right();
+    await sleep(450);
+    if(side!=='eq') await eatPile(ep, side);
+    await say(ep, side==='eq' ? w.porovnu : 'ob_est');
+  } else {
+    if(!shown) A.right();
+    await say(ep,'ob_est');
+  }
+  clearGlows();
+  await sleep(350*tempo());
+  afterTask(lv, shown?Math.max(miss,SHOW_AT):miss, hinted, fast, S.tasksLeft);
+}
+
+/* ---- IV блок: итог, выдох, мостик ---- */
+function eatenHTML(max){
+  const w=W(), n=S.eaten, show=Math.min(n,max); let h='';
+  for(let i=0;i<show;i++) h+='<div class="th">'+pic(w.item,w.itemName,true)+'</div>';
+  return h+(n>max?'<div class="more">+'+(n-max)+'</div>':'');
+}
+FLOW.finish = async ep=>{
+  S.lock=true;
+  const w=W();
+  const prize=ASSETS[w.prize]?w.prize:w.actor;
+  $('#finA').innerHTML='<div class="hImg">'+pic(prize,w.name)+'</div><div class="thumbs" style="--s:28px">'+eatenHTML(12)+'</div>';
+  $('#fNose').innerHTML=pic('ikonka_nos','нос'); $('#fMouth').innerHTML=pic('ikonka_rot','рот');
+  A.done();
+  await sleep(500);
+  const e=$('#finA .hImg'); e.classList.remove('pop'); void e.offsetWidth; e.classList.add('pop');
+  await say(ep,'ob_zdorovo'); await sleep(500);
+  await say(ep,'ob_spasibo');
+  await breathe(ep, 1, $('#fCircle'), $('#fNose'), $('#fMouth'), null);
+  await sleep(500);
+  go('bridge');
+};
+
+FLOW.bridge = async ep=>{
+  S.lock=true;
+  const w=W();
+  $('#brA').innerHTML=pic(ASSETS[w.prize]?w.prize:w.actor,w.name);
+  $('#brMost').innerHTML=pic('geroy_most_nesi_telefon','неси телефон взрослому');
+  $('#brTrail').innerHTML='<div class="thumbs">'+eatenHTML(10)+'</div>';
+  const tb=$('#brTropa'); tb.classList.toggle('hide',!S.tropaPick);
+  if(S.tropaPick) tb.innerHTML=pic(S.tropaPick==='gornaya'?'ikonka_tropa_gornaya':'ikonka_tropa_prostaya','тропа');
+  $('#brCard').innerHTML='<span class="lbl">Для взрослого</span>'+adult3().map(t=>'<p>'+t+'</p>').join('');
+  const coarse = window.matchMedia && matchMedia('(pointer:coarse)').matches;
+  await sleep(500);
+  const seq=[coarse?'ob_otnesi':'ob_pozovi', '03_most'];
+  if(S.tropaPick) seq.push('kon_bridge_gornaya');
+  seq.push('ob_esli_zanyaty');
+  await say(ep, ...seq);
+};
+
+/* ================= ОКНО ВЗРОСЛОГО ================= */
+function adult3(){
+  const a=CONTENT.adult3.slice();
+  if(S.tropaPick==='gornaya') a[2]=CONTENT.adultTropa+' '+a[2];
+  else if(S.tropaPick==='prostaya') a[2]=CONTENT.adultTropaSame;
+  return a;
+}
+function sheetHTML(){
+  const L=S.log, st=S.set;
+  const seg=(key,opts)=>'<div class="seg" data-k="'+key+'">'+opts.map(o=>'<button data-v="'+o[0]+'" class="'+(String(st[key])===String(o[0])?'on':'')+'">'+(o[2]&&ASSETS[o[2]]?'<img src="'+ASSETS[o[2]]+'" alt="">':'')+o[1]+'</button>').join('')+'</div>';
+  const avg = L && L.rt.length ? (L.rt.reduce((a,b)=>a+b,0)/L.rt.length/1000).toFixed(1)+' с' : '—';
+  const byL = L ? Object.keys(L.byL).map(k=>'L'+k+': '+L.byL[k].n+' зад., промахов '+L.byL[k].miss).join(' · ') : '';
+  const log = L ? '<div class="log">Заданий: '+L.tasks+' · чистых: '+L.clean+' · трудных: '+L.hard+' · подсказок (ряды): '+L.hints+' · показали ответ: '+L.shown+' · промахов: '+L.miss+
+    '<br>По уровням: '+(byL||'—')+
+    '<br>Обманка: заданий '+L.obm+' · первым выбрал крупные — '+L.obmTrap+' · сразу верно — '+L.obmClean+
+    '<br>«Поровну»: заданий '+L.eqN+' · промахов на них '+L.eqMiss+' · слушал цифры: '+L.nums+
+    '<br>Время до ответа: '+avg+' · Опора включалась: '+L.supports+' · паузы 15 с: '+L.idle+
+    '<br>План: посчитал кучек '+L.counted+' · нажал знак до счёта — '+L.signEarly+
+    '<br>«Жук спит»: '+L.sleepN+' · подождал спокойно — '+L.sleepCalm+' · касаний во сне — '+L.sleepTaps+
+    '<br>Стук: '+L.stukN+' · слишком быстрых ударов — '+L.stukFast+' · окно отдыха: '+L.rests+
+    '<br>Тропа: '+(L.offers.join(', ')||'не предлагалась')+(L.bursts.length?' · заходы: '+L.bursts.join(', '):'')+
+    '<br>Уровни: '+(L.levels.join(' → ')||'—')+'</div>' : '<div class="log">Игра ещё не начата.</div>';
+  return ''+
+  '<div class="closeRow"><button class="tbtn main" data-act="close">Вернуться к игре</button></div>'+
+  '<h2>Три строки для взрослого</h2><div class="three">'+adult3().map(t=>'<p>'+t+'</p>').join('')+'</div>'+
+  '<h2>Правило</h2><p>Сначала коснись каждой кучки — она посчитается. Потом нажми ту, где больше, и поставь знак. Знак — это рот жука: он открыт туда, где больше. Поровну — жук сыт, знак «=».</p>'+
+  '<h2>Что тренирует</h2><p><b>II блок</b> (переработка): сравнение количества, знаки &gt;, &lt;, =, связь «кучка — цифра».<br>'+
+  '<b>I блок</b> (тонус, бодрствование): на входе ребёнок дышит «столько, сколько яблок» — каждый вдох зажигает яблоко; профиль «низкий тонус» — стук по герою под медленный метроном.<br>'+
+  '<b>III блок</b> (регуляция): план «сначала посчитай — потом выбери» (знаки ждут, пока обе кучки посчитаны); «жук спит» — касаться не надо, ждём; обманка «большие — не значит много».</p>'+
+  '<p>Эффект не замерен. Игра не заменяет телесную работу и занятия со специалистом.</p>'+
+  '<h2>Как помочь</h2><ol><li>Считайте вместе пальчиком.</li><li>Раскладывайте парами: мой — твой. У кого остался без пары — у того больше.</li><li>Хвалите за то, что посчитал, а не за скорость.</li></ol>'+
+  '<p>Ошибок в игре нет. Первый промах — «Попробуем ещё раз?». Второй — предметы встают в два ряда парами, лишние без пары светятся. Третий — нужная кучка и знак светятся и встают сами.</p>'+
+  '<p><b>Подстройка сама.</b> Первая игра начинается с середины и по двум заданиям выбирает уровень. Две ошибки подряд — опора: предметы стоят парами, счёт медленный, с голосом. При опоре ещё два трудных задания — уровень ниже. Три чистых задания подряд — опора уходит, иначе уровень выше. Повторная игра — на ступень легче, чем закончилась. Ухо, цифра и «жук спит» не считаются.</p>'+
+  '<p><b>Горная тропа.</b> После трёх чистых заданий ребёнок может выбрать картинкой: та же тропа или горная. Горная — на ступень выше, 4 задания, без опоры. Две ошибки подряд — тихо назад, без слов. Дошёл — уровень остаётся выше. Не чаще 2 раз за игру, не в конце. Оба выбора хорошие.</p>'+
+  '<p>Уровни: '+CONTENT.levels.slice(1).map((p,i)=>(i+1)+' — '+p.name).join('; ')+'. 5–8 лет: уровни 1–5 (горная тропа — до 6), 8–10 лет: 1–7. Каждое третье задание примерно — «поровну». После каждых трёх заданий — один вдох-выдох. 45 секунд без действий — окно отдыха.</p>'+
+  '<p>Если ребёнок гиперактивный: оставьте «Жук спит», темп «Медленный», 2 круга. Если вялый, низкий тонус: «Стук под метроном».</p>'+
+  '<h2>Если трудно</h2><p>Режим «Легко». Вернитесь к кучкам до 5. Дома — те же пары «мой — твой» на ложках, пуговицах, ягодах.</p>'+
+  '<h2>Сколько играть</h2><p>5–7 минут, один раз в день. Мало сил — 2 круга вместо 3.</p>'+
+  '<h2>Для специалиста</h2><p>Путает ли размер и количество (строка «Обманка»: первым выбрал крупные); нужен ли пересчёт один-к-одному (подсказки, опора); держит ли план (знак до счёта); ждёт ли, когда жук спит; сколько ждёт до ответа; различает ли «поровну».</p>'+log+
+  '<h2>Настройки</h2>'+
+  '<div class="setl">Возраст</div>'+seg('age',[['junior','5–8 лет'],['senior','8–10 лет']])+
+  '<div class="setl">Трудность</div>'+seg('mode',[['auto','Подстройка сама'],['easy','Легко (с опорой)'],['hard','С верхнего уровня — вместе'],['manual','Начать с уровня…']])+
+  (st.mode==='manual'?seg('startLevel',CONTENT.levels.slice(1).map((p,i)=>[i+1,(i+1)+' · '+p.name])):'')+
+  '<div class="setl">Горная тропа (выбор ребёнка)</div>'+seg('tropa',[['both','И так, и так'],['auto','Игра сама'],['child','Ребёнок выбирает'],['together','Вместе']])+
+  '<div class="setl">Вставки для тела и внимания</div>'+seg('profile',[['calm','«Жук спит» — ждём (торможение)'],['tonus','Стук под метроном (низкий тонус)'],['off','Без вставок']])+
+  '<div class="setl">Мир по умолчанию</div>'+seg('world',CONTENT.worldOrder.map(k=>[k,CONTENT.worlds[k].name]))+
+  '<div class="setl">Темп</div>'+seg('tempo',[['normal','Обычный'],['slow','Медленный']])+
+  '<div class="setl">Кругов за игру (по 3 задания)</div>'+seg('rounds',CONFIG.roundsOptions.map(n=>[n,String(n)]))+
+  '<div class="setl">Звук (сигналы)</div>'+seg('sound',[[true,'Включён','ikonka_zvuk_vkl'],[false,'Выключен','ikonka_zvuk_vykl']])+
+  '<div class="setl">Речь (голос Дяди Миши)</div>'+seg('speech',[[true,'Включена','ikonka_uho'],[false,'Выключена']])+
+  (CONFIG.draft?'<div class="setl">Черновой голос: полоска с текстом фразы</div>'+seg('draftBar',[[true,'Показывать'],[false,'Скрыть']]):'')+
+  '<p style="font-size:14px;color:var(--ink2)">Сейчас уровень '+(S.level||'—')+'. Возраст и трудность применятся со следующей игры. <button class="tbtn" data-act="resetLevel">Сбросить подстройку</button></p>'+
+  '<div class="closeRow" style="margin-top:14px"><button class="tbtn" data-act="home">Домой</button><button class="tbtn" data-act="restart">Начать заново</button><button class="tbtn main" data-act="close">Вернуться к игре</button></div>'+
+  '<p class="sign">Дядя Миша · © 2026 Михаил Лесоневич · «Первый класс без слёз»</p>';
+}
+function openAdult(){ A.tap(); setPaused(true,false); $('#sheet').innerHTML=sheetHTML(); $('#adult').classList.add('on'); $('#adult').scrollTop=0; }
+function closeAdult(){ $('#adult').classList.remove('on'); if(!$('#pause').classList.contains('on')) setPaused(false); }
+$('#sheet').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return; A.tap();
+  const seg=b.closest('.seg');
+  if(seg){
+    const k=seg.dataset.k; let v=b.dataset.v;
+    if(v==='true') v=true; else if(v==='false') v=false; else if(/^\d+$/.test(v)) v=+v;
+    S.set[k]=v; if(k==='sound') A.on=v; if(k==='speech' && !v) V.stop(); if(k==='age'||k==='mode'||k==='startLevel') S.set.level=0;
+    if(k==='draftBar' && !v) $('#draft').classList.remove('on');
+    if(k==='world' && S.screen==='intro'){ S.world=v; FLOW.intro(RT.epoch); }
+    saveSet(); const y=$('#adult').scrollTop; $('#sheet').innerHTML=sheetHTML(); $('#adult').scrollTop=y; return;
+  }
+  const act=b.dataset.act;
+  if(act==='close') closeAdult();
+  if(act==='resetLevel'){ S.set.level=0; saveSet(); $('#sheet').innerHTML=sheetHTML(); }
+  if(act==='home'){ $('#adult').classList.remove('on'); $('#pause').classList.remove('on'); setPaused(false); go('intro'); }
+  if(act==='restart'){ $('#adult').classList.remove('on'); $('#pause').classList.remove('on'); setPaused(false); startGame(); go('breath'); }
+  closeRestIfLeft();
+});
+$('#adult').addEventListener('click',e=>{ if(e.target.id==='adult') closeAdult(); });
+function closeRestIfLeft(){ if(!['play','learn'].includes(S.screen)) closeRest(); }
+
+/* ================= КНОПКИ ================= */
+function setupButtons(){
+  $('#playBtn').innerHTML=pic('ikonka_igrat','играть');
+  $('#pauseBtn').innerHTML=pic('ikonka_pauza','пауза');
+  $('#earBtn').innerHTML=pic('ikonka_uho','ещё раз');
+  $('#resumeBtn').innerHTML=pic('ikonka_igrat','продолжить');
+  $('#pHome').innerHTML=pic('ikonka_domoy','домой'); $('#homeBtn').innerHTML=pic('ikonka_domoy','домой');
+  $('#pRestart').innerHTML=pic('ikonka_eshche_raz','заново'); $('#againBtn').innerHTML=pic('ikonka_eshche_raz','ещё раз');
+  $('#playBtn').onclick=async()=>{
+    if(S.screen!=='intro') return;
+    startGame();
+    const ep=++RT.epoch; S.lock=true; $('#playBtn').disabled=true;
+    try{ await say(ep,'ob_privet'); go('breath'); }catch(e){}
+    $('#playBtn').disabled=false;
+  };
+  $('#pauseBtn').onclick=()=>{ A.tap(); openPause(); };
+  $('#resumeBtn').onclick=()=>{ A.tap(); closePause(); };
+  $('#pHome').onclick=()=>{ A.tap(); closePause(); setPaused(false); go('intro'); };
+  $('#pRestart').onclick=()=>{ A.tap(); closePause(); setPaused(false); startGame(); go('breath'); };
+  $('#infoBtn').onclick=openAdult;
+  $('#earBtn').onclick=()=>{
+    A.tap(); if(RT.paused) return;
+    if(!S.lastInstr.length) return;
+    if(S.waiting || S.screen==='breath'){ const seq=S.lastInstr.slice(); (async()=>{ for(const k of seq){ await V.say(k); if(!S.waiting && S.screen!=='breath') break; } })(); }
+  };
+  $('#againBtn').onclick=()=>{ A.tap(); startGame(); go('breath'); };
+  $('#offSame').onclick=()=>{ if(RT.paused) return; A.tap(); onPick({tropa:'same'}); };
+  $('#offHill').onclick=()=>{ if(RT.paused) return; A.tap(); onPick({tropa:'hill'}); };
+  setupRest();
+  $('#homeBtn').onclick=async()=>{ A.tap(); const ep=++RT.epoch; try{ await say(ep,'ob_poka'); }catch(e){} go('intro'); };
+}
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && !['intro','bridge'].includes(S.screen)) openPause(); else if(document.hidden) V.pause(); });
+
+/* ================= КАСАНИЕ: pointerdown на всё, что нажимается =================
+   Кнопки срабатывают на касание, без задержки click. Следом браузер присылает «настоящий» click — его гасим флагом.
+   Флаг снимается первым trusted click, pointercancel и касанием мимо кнопок. */
+const TAPSEL='button,.pile';
+document.addEventListener('pointerdown',e=>{
+  if(e.button>0) return;
+  const el=e.target.closest(TAPSEL);
+  if(!el || el.disabled){ RT.pdGhost=false; return; }
+  RT.pdGhost=true; A.ensure();
+  e.preventDefault();
+  const inner=e.target.closest('button')||el;
+  inner.click();
+},{capture:true});
+document.addEventListener('click',e=>{
+  if(e.isTrusted && RT.pdGhost){ RT.pdGhost=false; e.stopPropagation(); e.preventDefault(); }
+},{capture:true});
+document.addEventListener('pointercancel',()=>{ RT.pdGhost=false; },{capture:true});
+
+/* ================= СТАРТ ================= */
+function setVH(){ const h=(window.visualViewport&&visualViewport.height)||innerHeight; document.documentElement.style.setProperty('--vh',(Math.min(h,innerHeight)/100)+'px'); }
+setVH(); addEventListener('resize',setVH); addEventListener('orientationchange',()=>setTimeout(setVH,250));
+if(window.visualViewport) visualViewport.addEventListener('resize',setVH);
+loadSet(); setupButtons(); go('intro');
+</script>
+</body>
+</html>
