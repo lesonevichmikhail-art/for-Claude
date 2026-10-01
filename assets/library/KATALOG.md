@@ -7,7 +7,7 @@
 - **Герои:** geroy_devochka, geroy_malchik, geroy_mama, geroy_ptichka, geroy_kot, geroy_sobaka, geroy_most_nesi_telefon, geroy_pilot_bez_shlema, geroy_pilot_kvadrocikl, geroy_pilot_zastryal, geroy_yozhik
 - **Предметы:** predmet_kvadrocikl, predmet_ladoni, predmet_motor_drozhit, predmet_motor_tihiy, predmet_perchatki, predmet_shlem
 - **Фоны:** fon_chuzhoe_pole, fon_derevnya, fon_garazh, fon_lesnaya_trassa
-- **Иконки:** ikonka_chestnyy_pilot, ikonka_domoy, ikonka_eshche_raz, ikonka_galochka, ikonka_igrat, ikonka_ladon_gorlo, ikonka_nos, ikonka_obehat, ikonka_pauza, ikonka_proverit, ikonka_rot, ikonka_skazal, ikonka_stop, ikonka_strelka, ikonka_uho
+- **Иконки:** ikonka_ruka_kto, ikonka_ruka_chto (половинки predmet_dve_ladoni), ikonka_chestnyy_pilot, ikonka_domoy, ikonka_eshche_raz, ikonka_galochka, ikonka_igrat, ikonka_ladon_gorlo, ikonka_nos, ikonka_obehat, ikonka_pauza, ikonka_proverit, ikonka_rot, ikonka_skazal, ikonka_stop, ikonka_strelka, ikonka_uho
 
 ## Голос — общие фразы (golos/obshchie) — для всех игр
 - ob_dyshim — «Давай подышим вместе.»
