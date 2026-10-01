@@ -101,3 +101,4 @@
 ## Голос: числа (golos/chisla) — chislo_1 … chislo_20, для любой игры со счётом
 Нарезано по паузам и длительностям (речь не распознаётся). Места, где фразы шли почти без паузы и разделены вручную: 03_podozhdem / 03_prosnulsya_zhuk, 03_prosnulsya_klad / 03_prosnulsya_voda — проверить на слух.
 - 2026-10-01 добавлены (из JPG Михаила, клетка убрана): geroy_zhuk_obzhora_syt (сытая, круглая), geroy_zhuk_spit (спит), predmet_gruzik, geroy_zhuk_obzhora_alt (запасная поза божьей коровки, в игре не используется)
+- 2026-10-01 добавлены: predmet_sunduk, predmet_sunduk_zamok, geroy_vodolaz_otdyhaet, fon_more

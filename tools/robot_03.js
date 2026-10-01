@@ -31,7 +31,7 @@ for(const [W,H] of [[390,844],[844,390]]){
     if(st.stuk){ await snap('stuk'); await tap('#stukBtn'); await tap('#stukBtn'); await p.waitForTimeout(200); continue; }
     if(st.sleeping){ await snap('sleep'); if(Math.random()<.3) await tap('#pileL'); continue; }
     if(!st.w) continue;
-    if(st.scr==='learn'){ await snap('world'); await tap('.wbtn[data-w="zhuk"]'); continue; }
+    if(st.scr==='learn'){ await snap('world'); await tap(`.wbtn[data-w="${process.env.WORLD||"zhuk"}"]`); continue; }
     if(st.scr!=='play') continue;
     if(!adultTested && steps>300){ adultTested=true; await tap('#infoBtn'); await p.waitForTimeout(400); adultOpen=await p.evaluate(()=>$('#adult').classList.contains('on')); await snap('adult'); await tap('#sheet .tbtn.main'); await p.waitForTimeout(300); continue; }
     if(!idleTested && steps>200){ idleTested=true; await p.waitForTimeout(3200); continue; }   // 45 с без действий → окно отдыха
